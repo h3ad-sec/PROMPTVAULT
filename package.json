@@ -1,0 +1,11 @@
+{
+  "name": "promptvault",
+  "version": "1.0.0",
+  "description": "Community-driven AI prompt library for SOC analysts and detection engineers",
+  "scripts": {
+    "generate": "node scripts/generate-manifest.js"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}

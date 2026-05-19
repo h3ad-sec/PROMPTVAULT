@@ -1,0 +1,110 @@
+id: threat-intel-summarizer
+title: Threat Intel Summarizer
+category: intel
+use_case: Extract structured, SOC-ready intelligence from a raw threat report, blog post, or advisory
+tags: [threat-intel, summarization, ioc-extraction, ttp-analysis, cti]
+mitre: []
+author: hrushikesh-badgujar
+contributed: 2026-05-19
+best_with: claude-3.5-sonnet
+limitations: May miss obfuscated indicators (defanged URLs, hex-encoded IPs) — scan the output manually. Does not replace dedicated IOC extraction tools like PARSE-X.
+
+prompt: |
+  You are a threat intelligence analyst preparing a structured intelligence summary for SOC distribution.
+
+  Threat report:
+  {PASTE THE FULL THREAT REPORT, BLOG POST, OR ADVISORY HERE}
+
+  Extract and return ONLY the following. Write "Not mentioned" for any field with no data.
+
+  THREAT ACTOR: [Name or "Unknown"]
+  MOTIVATION: [Financial / Espionage / Hacktivism / Destructive / Unknown]
+  TARGETS: [Industries, geographies, or named organizations]
+  ACTIVE SINCE: [Date or "Unknown"]
+
+  TTPs:
+  - [T####.###] [Technique Name]: [How the actor used it — one sentence]
+
+  INDICATORS OF COMPROMISE:
+  - IPs: [one per line]
+  - Domains: [one per line]
+  - File Hashes: [hash type + value, one per line]
+  - URLs: [one per line]
+  - Email Addresses: [one per line]
+
+  DETECTION OPPORTUNITIES:
+  - [Specific log source or behavior to hunt for — max 5]
+
+  HUNTING HYPOTHESES:
+  - [Specific, testable hypothesis — max 3]
+
+  RECOMMENDED MITIGATIONS:
+  - [CVE ID or security control — one per line]
+
+  PRIORITY: [Critical / High / Medium / Low] — [One-line rationale]
+
+example_output: |
+  THREAT ACTOR: Lazarus Group (aka HIDDEN COBRA)
+  MOTIVATION: Financial
+  TARGETS: Cryptocurrency exchanges, DeFi platforms — primarily Southeast Asia and Europe
+  ACTIVE SINCE: 2009
+
+  TTPs:
+  - T1566.002 Spearphishing Link: Sent lure emails with job offer PDFs linking to weaponized Google Drive documents
+  - T1059.001 PowerShell: Executed encoded commands post-phishing to pull second-stage payload
+  - T1055.012 Process Hollowing: Injected payload into legitimate svchost.exe to evade EDR detection
+
+  INDICATORS OF COMPROMISE:
+  - IPs:
+    185.220.101.45
+    91.108.4.77
+  - Domains:
+    update-service[.]net
+    cdn-delivery[.]org
+  - File Hashes:
+    SHA256: a3f1b2c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2
+  - URLs:
+    hxxps://update-service[.]net/payload.bin
+  - Email Addresses: Not mentioned
+
+  DETECTION OPPORTUNITIES:
+  - PowerShell spawned by Outlook or browser processes (parent-child process chain)
+  - Outbound connections to domains registered within the past 30 days from workstations
+  - svchost.exe executing from non-System32 paths
+
+  HUNTING HYPOTHESES:
+  - Finance-team workstations made outbound connections to newly registered domains in the past 30 days
+  - PowerShell with encoded commands executed within 1 hour of an email open event
+  - svchost.exe instances with unusual parent processes (not services.exe)
+
+  RECOMMENDED MITIGATIONS:
+  - Disable Office macros from internet-sourced documents via GPO
+  - Block outbound connections to domains registered less than 30 days ago at the proxy layer
+  - Deploy AppLocker to restrict PowerShell execution from user-writable paths
+
+  PRIORITY: High — active financial sector targeting with well-documented TTPs and high detection confidence
+
+variants:
+  - model: gpt-4o
+    prompt: |
+      You are a CTI analyst. Extract structured intelligence from the report below for SOC distribution.
+
+      Report:
+      {PASTE THE THREAT REPORT HERE}
+
+      Return ONLY this structure — no prose, no preamble:
+
+      THREAT ACTOR: [name or Unknown]
+      MOTIVATION: [Financial/Espionage/Hacktivism/Destructive/Unknown]
+      TARGETS: [industries or organizations]
+      TTPs: [T####.### Name: how used — one per line]
+      IOCs:
+        IPs: [one per line]
+        Domains: [one per line]
+        Hashes: [one per line]
+        URLs: [one per line]
+      DETECTION OPPORTUNITIES: [max 5, one per line]
+      HUNTING HYPOTHESES: [max 3, one per line]
+      MITIGATIONS: [one per line]
+      PRIORITY: [Critical/High/Medium/Low — reason]
+    notes: GPT-4o handles large reports well but tends to truncate IOC lists — if the report has many indicators, ask it to "list all IOCs without truncation" in a follow-up.

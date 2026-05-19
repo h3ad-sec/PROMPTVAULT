@@ -1,0 +1,78 @@
+id: alert-triage-assistant
+title: Alert Triage Assistant
+category: triage
+use_case: Triage a raw alert or log snippet and return a structured analyst verdict with MITRE mapping and next steps
+tags: [triage, alert-analysis, soc, l1, l2, verdict]
+mitre: []
+author: hrushikesh-badgujar
+contributed: 2026-05-19
+best_with: claude-3.5-sonnet
+limitations: Verdict accuracy depends on alert context richness — sparse alerts produce low-confidence outputs. Always apply analyst judgment before escalating or suppressing.
+
+prompt: |
+  You are a SOC analyst with L2 experience performing structured alert triage.
+
+  Alert to triage:
+  {PASTE THE RAW ALERT, LOG LINES, OR SIEM NOTIFICATION HERE}
+
+  Analyze the alert and return ONLY the following structure. Do not add any other text.
+
+  VERDICT: [Malicious / Likely Malicious / Suspicious / Likely Benign / Benign]
+  CONFIDENCE: [High / Medium / Low]
+  REASON: [One sentence explaining the verdict]
+
+  MITRE TTPs:
+  - [T####.###]: [Technique Name]
+
+  SUMMARY:
+  [2-3 sentences describing what likely happened, what asset is at risk, and why this matters]
+
+  NEXT STEPS:
+  1. [Immediate action]
+  2. [Investigation step]
+  3. [Containment or follow-up]
+
+  SUPPRESSION CRITERIA: [Exact conditions under which this alert can be safely suppressed — or "Do not suppress"]
+
+  ESCALATE: [Yes / No] — [One-line reason]
+
+example_output: |
+  VERDICT: Likely Malicious
+  CONFIDENCE: Medium
+  REASON: PowerShell downloading a remote payload via IEX is a well-established execution pattern rarely seen in legitimate workflows.
+
+  MITRE TTPs:
+  - T1059.001: PowerShell
+  - T1105: Ingress Tool Transfer
+
+  SUMMARY:
+  A PowerShell process on WKSTN-042 executed an IEX(DownloadString) command pulling content from an external IP (185.220.x.x). The external IP falls in a Tor exit node range, suggesting deliberate obfuscation. The target is an end-user workstation that may now have a foothold established.
+
+  NEXT STEPS:
+  1. Isolate WKSTN-042 from the network immediately
+  2. Pull the full PowerShell command-line history and child process tree
+  3. Check for persistence — scheduled tasks, registry run keys, new accounts created in the past 24h
+
+  SUPPRESSION CRITERIA: Do not suppress — active download behavior to Tor infrastructure warrants investigation regardless of frequency.
+
+  ESCALATE: Yes — active potential compromise with network isolation required
+
+variants:
+  - model: gpt-4o
+    prompt: |
+      You are a Tier 2 SOC analyst performing structured alert triage.
+
+      Alert:
+      {PASTE THE RAW ALERT HERE}
+
+      Return your analysis in this exact format only — no preamble, no commentary:
+
+      VERDICT: [Malicious / Likely Malicious / Suspicious / Likely Benign / Benign]
+      CONFIDENCE: [High / Medium / Low]
+      REASON: [One sentence]
+      MITRE TTPs: [comma-separated T#### IDs and names]
+      SUMMARY: [2-3 sentences]
+      NEXT STEPS: [numbered list, max 3]
+      SUPPRESSION CRITERIA: [one line or "Do not suppress"]
+      ESCALATE: [Yes/No — one-line reason]
+    notes: GPT-4o adds a preamble before VERDICT — "no preamble, no commentary" reduces it. Still sometimes reformats the MITRE field, watch for it.

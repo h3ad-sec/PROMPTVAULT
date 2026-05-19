@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROMPTVAULT - AI Prompt Arsenal // H3AD-SEC</title>
+  <meta name="description" content="PROMPTVAULT by H3AD-SEC — A community-driven library of AI prompts for SOC analysts, detection engineers, and threat hunters." />
+  <link rel="icon" href="https://h3ad-sec.github.io/fevicon.png?v=2026" />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #06080e;
+      --panel: #0b1018;
+      --panel-alt: #0f1622;
+      --surface: #18253a;
+      --text: #e2eeff;
+      --text-dim: #96b0cc;
+      --muted: #62809c;
+      --muted-dim: #3a5470;
+      --accent: #00ff9f;
+      --accent2: #4d94ff;
+      --border: #1e3050;
+      --border-dim: #121e30;
+      --nav-h: 48px;
+      --topbar-h: 56px;
+      --filterbar-h: 48px;
+      --mono: 'Share Tech Mono', monospace;
+      --cat-triage: #f59e0b;
+      --cat-detect: #4d94ff;
+      --cat-intel: #a855f7;
+      --cat-hunt: #00ff9f;
+      --cat-respond: #ff6b35;
+      --cat-analyze: #06b6d4;
+    }
+
+    body.light {
+      --bg: #eef2f8;
+      --panel: #ffffff;
+      --panel-alt: #e4ecf6;
+      --surface: #ccd8ec;
+      --text: #060e1c;
+      --text-dim: #142540;
+      --muted: #2c4a6a;
+      --muted-dim: #5c7a9a;
+      --accent: #004db8;
+      --accent2: #007a55;
+      --border: #a0b8d4;
+      --border-dim: #c8d8ec;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; min-height: 100vh; transition: background 0.25s, color 0.25s; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { opacity: 0.8; }
+
+    #matrix { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: 0.2; }
+    body.light #matrix { opacity: 0.1; }
+
+    /* ── NAV ── */
+    .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--panel); border-bottom: 1px solid var(--border); height: var(--nav-h); display: flex; align-items: center; padding: 0 1.25rem; transition: background .3s, border-color .3s; }
+    .nav-brand { font-family: var(--mono); font-size: .78rem; color: var(--accent); letter-spacing: .06em; white-space: nowrap; flex-shrink: 0; margin-right: 1rem; text-decoration: none; display: flex; align-items: center; }
+    .nav-brand img { height: 22px; width: auto; vertical-align: middle; }
+    .nav-links { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; overflow: visible; }
+    .nav-links a { font-family: var(--mono); font-size: 11px; color: var(--text-dim); text-decoration: none; padding: 5px 8px; border-radius: 4px; border: 1px solid transparent; white-space: nowrap; transition: all .15s; }
+    .nav-links a:hover { color: var(--accent); border-color: var(--border); background: rgba(0,255,159,.04); }
+    .nav-links a.nav-current { color: var(--accent); border: 1px solid var(--border); }
+    .nav-divider { width: 1px; height: 18px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
+    .nav-right { margin-left: auto; flex-shrink: 0; padding-left: 1rem; }
+    .theme-toggle { cursor: pointer; }
+    .toggle-track { width: 44px; height: 22px; background: var(--border); border-radius: 50px; position: relative; }
+    .toggle-thumb { width: 16px; height: 16px; background: var(--accent); border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: transform .3s; box-shadow: 0 0 6px var(--accent); }
+    body.light .toggle-thumb { transform: translateX(22px); }
+    .hamburger { display: none; flex-direction: column; justify-content: center; gap: 4px; cursor: pointer; padding: 6px; margin-right: 8px; flex-shrink: 0; }
+    .hamburger span { display: block; width: 20px; height: 2px; background: var(--muted); border-radius: 2px; }
+    .nav-item { position: relative; display: flex; align-items: center; }
+    .nav-dropdown { display: none; position: absolute; top: 100%; left: 0; min-width: 130px; padding-top: 6px; z-index: 200; }
+    .nav-dropdown-inner { background: var(--panel); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+    .nav-item:hover .nav-dropdown { display: block; }
+    .nav-links .nav-dropdown a { display: block; padding: 7px 12px; font-family: var(--mono); font-size: 11px; color: var(--text-dim); border: none; border-left: 2px solid transparent; border-radius: 0; transition: .15s; }
+    .nav-links .nav-dropdown a:hover, .nav-links .nav-dropdown a.nav-current { color: var(--accent); border-left-color: var(--accent); background: rgba(0,255,159,.04); }
+
+    /* ── Mobile drawer ── */
+    .nav-drawer { display: none; position: fixed; top: var(--nav-h); left: 0; right: 0; background: var(--panel); border-bottom: 1px solid var(--border); z-index: 99; padding: .75rem 1.25rem 1rem; flex-direction: column; gap: 2px; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { font-family: var(--mono); font-size: 13px; color: var(--text-dim); text-decoration: none; padding: 8px 10px; border-radius: 4px; border-left: 2px solid transparent; transition: .15s; }
+    .nav-drawer a:hover { color: var(--accent); border-left-color: var(--accent); background: rgba(0,255,159,.04); }
+    .nav-drawer a.nav-current { color: var(--accent); }
+    .drawer-sub { padding-left: 1.8rem !important; font-size: 11px !important; opacity: .8; }
+
+    @media (max-width: 900px) { .nav-links { display: none; } .hamburger { display: flex; } }
+
+    /* ── Page wrap ── */
+    .page-wrap { position: relative; z-index: 1; padding-top: var(--nav-h); min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ── Hero strip ── */
+    .tracer-hero { position: fixed; top: var(--nav-h); left: 0; right: 0; z-index: 50; background: var(--panel-alt); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; height: var(--topbar-h); transition: transform .35s cubic-bezier(.4,0,.2,1), opacity .3s ease; }
+    .hero-left { display: flex; flex-direction: column; justify-content: center; }
+    .hero-breadcrumb { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.06em; margin-bottom: 2px; }
+    .hero-breadcrumb a { color: var(--muted); }
+    .hero-breadcrumb a:hover { color: var(--accent); opacity: 1; }
+    .hero-breadcrumb span { color: var(--accent); opacity: 0.6; margin: 0 5px; }
+    .hero-title-row { display: flex; align-items: baseline; gap: 8px; }
+    .hero-title { font-family: var(--mono); font-size: 18px; color: var(--accent); letter-spacing: 0.12em; line-height: 1; }
+    .hero-tagline { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 0.12em; }
+    .hero-right { display: flex; align-items: center; }
+    .arsenal-badge { font-family: var(--mono); font-size: 10px; color: var(--accent); background: rgba(0,255,159,0.07); border: 1px solid rgba(0,255,159,0.25); padding: 4px 12px; border-radius: 3px; letter-spacing: 0.1em; }
+    body.light .arsenal-badge { background: rgba(0,77,184,0.07); border-color: rgba(0,77,184,0.28); }
+
+    /* ── Filter bar ── */
+    .filter-bar { position: sticky; top: calc(var(--nav-h) + var(--topbar-h)); z-index: 40; background: var(--panel); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; align-items: center; gap: 6px; height: var(--filterbar-h); flex-wrap: nowrap; }
+    .filter-pill { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; padding: 4px 14px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.14s; white-space: nowrap; flex-shrink: 0; }
+    .filter-pill:hover { color: var(--text); border-color: var(--muted); }
+    .filter-pill.active { color: var(--accent); border-color: var(--accent); background: rgba(0,255,159,0.08); }
+    .filter-pill.pill-triage.active  { color: var(--cat-triage);  border-color: var(--cat-triage);  background: rgba(245,158,11,0.08); }
+    .filter-pill.pill-detect.active  { color: var(--cat-detect);  border-color: var(--cat-detect);  background: rgba(77,148,255,0.08); }
+    .filter-pill.pill-intel.active   { color: var(--cat-intel);   border-color: var(--cat-intel);   background: rgba(168,85,247,0.08); }
+    .filter-pill.pill-hunt.active    { color: var(--cat-hunt);    border-color: var(--cat-hunt);    background: rgba(0,255,159,0.08); }
+    .filter-pill.pill-respond.active { color: var(--cat-respond); border-color: var(--cat-respond); background: rgba(255,107,53,0.08); }
+    .filter-pill.pill-analyze.active { color: var(--cat-analyze); border-color: var(--cat-analyze); background: rgba(6,182,212,0.08); }
+    .filter-spacer { flex: 1; }
+    .filter-search { font-family: var(--mono); font-size: 11px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 5px 12px; outline: none; width: 220px; transition: border-color 0.15s; letter-spacing: 0.03em; }
+    .filter-search::placeholder { color: var(--muted); }
+    .filter-search:focus { border-color: var(--accent); }
+
+    /* ── Main content ── */
+    .main-content { flex: 1; padding: calc(var(--topbar-h) + var(--filterbar-h) + 20px) 20px 40px; }
+    .query-count { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 14px; }
+    .query-count span { color: var(--accent); }
+
+    /* ── Card grid ── */
+    .query-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 768px)  { .query-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1200px) { .query-grid { grid-template-columns: repeat(3, 1fr); } }
+
+    /* ── Prompt card ── */
+    .query-card { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px 12px; position: relative; transition: border-color 0.18s; display: flex; flex-direction: column; gap: 6px; min-width: 0; overflow: hidden; }
+    .query-card:hover { border-color: var(--muted-dim); }
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .card-title { font-family: var(--mono); font-size: 13px; color: var(--accent); line-height: 1.35; flex: 1; }
+    .cat-badge { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; padding: 2px 8px; border-radius: 3px; white-space: nowrap; flex-shrink: 0; font-weight: bold; border: 1px solid; }
+    .card-desc { font-size: 12px; color: var(--text-dim); line-height: 1.55; flex: 1; }
+    .card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+    .best-with-badge { font-family: var(--mono); font-size: 9px; color: var(--muted); background: var(--bg); border: 1px solid var(--border-dim); border-radius: 3px; padding: 2px 7px; white-space: nowrap; flex-shrink: 0; }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
+    .tag-pill { font-family: var(--mono); font-size: 8px; color: var(--muted-dim); background: transparent; border: 1px solid var(--border-dim); border-radius: 20px; padding: 1px 7px; letter-spacing: 0.04em; }
+    .card-footer { display: flex; justify-content: flex-end; margin-top: 4px; }
+    .btn-view { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 3px; padding: 3px 10px; cursor: pointer; transition: all 0.14s; white-space: nowrap; }
+    .btn-view:hover { color: var(--accent); border-color: var(--accent); background: rgba(0,255,159,0.05); }
+
+    /* ── Expanded section ── */
+    .query-expanded { display: none; margin-top: 6px; border-top: 1px solid var(--border); padding-top: 10px; }
+    .query-expanded.open { display: block; }
+
+    /* ── Model tabs ── */
+    .model-tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+    .model-tab { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; padding: 3px 10px; border-radius: 3px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.14s; }
+    .model-tab:hover { color: var(--text); border-color: var(--muted); }
+    .model-tab.active { color: var(--accent); border-color: var(--accent); background: rgba(0,255,159,0.08); }
+    body.light .model-tab.active { background: rgba(0,77,184,0.08); border-color: var(--accent); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── Prompt block ── */
+    .prompt-block { background: var(--bg); border: 1px solid var(--border-dim); border-radius: 4px; padding: 12px 14px; overflow-x: auto; max-width: 100%; scrollbar-width: thin; scrollbar-color: var(--muted-dim) transparent; }
+    .prompt-block::-webkit-scrollbar { height: 4px; }
+    .prompt-block::-webkit-scrollbar-thumb { background: var(--muted-dim); border-radius: 2px; }
+    .prompt-block pre { font-family: var(--mono); font-size: 11px; color: var(--text-dim); line-height: 1.65; white-space: pre-wrap; word-break: break-word; margin: 0; }
+    .placeholder { color: var(--accent); opacity: 0.75; font-style: italic; }
+
+    /* ── Variant notes ── */
+    .variant-notes { font-family: var(--mono); font-size: 10px; color: var(--cat-triage); background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.2); border-radius: 3px; padding: 6px 10px; margin-top: 8px; line-height: 1.5; letter-spacing: 0.02em; }
+
+    /* ── Limitations ── */
+    .limitations-note { font-family: var(--mono); font-size: 10px; color: var(--muted); background: var(--panel-alt); border-left: 2px solid var(--muted-dim); border-radius: 0 3px 3px 0; padding: 6px 10px; margin-top: 8px; line-height: 1.5; letter-spacing: 0.02em; }
+
+    /* ── Example output ── */
+    .example-details { margin-top: 8px; }
+    .example-summary { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 0.08em; cursor: pointer; padding: 4px 0; user-select: none; }
+    .example-summary:hover { color: var(--text); }
+    .example-block { background: var(--bg); border: 1px solid var(--border-dim); border-radius: 4px; padding: 10px 14px; margin-top: 6px; overflow-x: auto; }
+    .example-block pre { font-family: var(--mono); font-size: 10px; color: var(--muted); line-height: 1.6; white-space: pre-wrap; word-break: break-word; margin: 0; }
+
+    /* ── MITRE tags ── */
+    .mitre-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    .mitre-tag { font-family: var(--mono); font-size: 9px; color: #4d94ff; background: rgba(77,148,255,0.1); border: 1px solid rgba(77,148,255,0.25); border-radius: 3px; padding: 2px 7px; letter-spacing: 0.04em; }
+
+    /* ── Expanded actions ── */
+    .expanded-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+    .btn-hide { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 3px; padding: 3px 10px; cursor: pointer; transition: all 0.14s; }
+    .btn-hide:hover { color: var(--text); border-color: var(--muted); }
+    .btn-copy { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; background: rgba(0,255,159,0.07); color: var(--accent); border: 1px solid rgba(0,255,159,0.22); border-radius: 3px; padding: 3px 12px; cursor: pointer; transition: all 0.14s; }
+    .btn-copy:hover { background: rgba(0,255,159,0.14); }
+    body.light .btn-copy { background: rgba(0,77,184,0.07); border-color: rgba(0,77,184,0.25); }
+
+    /* ── State panels ── */
+    .state-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 20px; gap: 12px; }
+    .state-title { font-family: var(--mono); font-size: 16px; color: var(--text); letter-spacing: 0.1em; }
+    .state-desc { font-size: 12px; color: var(--muted); max-width: 320px; line-height: 1.6; }
+    .state-loading-text { font-family: var(--mono); font-size: 12px; color: var(--muted); letter-spacing: 0.1em; animation: blink 1.1s step-end infinite; }
+    @keyframes blink { 50% { opacity: 0.3; } }
+    .btn-retry { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; background: transparent; color: var(--accent); border: 1px solid var(--accent); border-radius: 3px; padding: 6px 18px; cursor: pointer; transition: all 0.14s; margin-top: 4px; }
+    .btn-retry:hover { background: rgba(0,255,159,0.08); }
+
+    /* ── Footer ── */
+    .tracer-footer { border-top: 1px solid var(--border); padding: 14px 20px; text-align: center; font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; }
+    .footer-link { color: var(--muted); text-decoration: none; }
+    .footer-link:hover { color: var(--accent); opacity: 1; }
+
+    /* ── Scroll sentinel + nav pill ── */
+    #scroll-sentinel { position: absolute; top: 0; left: 0; width: 1px; height: 10px; pointer-events: none; }
+    .xv-nav-pill { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; margin-left: 10px; padding-left: 10px; border-left: 1px solid var(--border); opacity: 0; transform: translateX(-8px); pointer-events: none; transition: opacity .3s ease, transform .3s cubic-bezier(.4,0,.2,1); white-space: nowrap; flex-shrink: 0; }
+    .xv-pill-name { font-family: var(--mono); font-size: 13px; letter-spacing: 4px; line-height: 1; }
+    .xv-pill-accent { color: var(--accent); }
+    .xv-pill-text { color: var(--text); }
+    .xv-pill-tagline { font-family: var(--mono); font-size: 8px; color: var(--muted); letter-spacing: 1.5px; }
+    body.hero-hidden .xv-nav-pill { opacity: 1; transform: translateX(0); pointer-events: auto; }
+    body.hero-hidden .tracer-hero { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+    body.hero-hidden .main-content { padding-top: calc(var(--nav-h) + 20px); }
+    @media (max-width: 1000px) {
+      .tracer-hero { display: none; }
+      .main-content { padding-top: calc(var(--nav-h) + 20px); }
+      body.hero-hidden .main-content { padding-top: calc(var(--nav-h) + 20px); }
+      .xv-nav-pill { opacity: 1; transform: none; pointer-events: auto; transition: none; }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .tracer-hero { height: auto; padding: 10px 14px; flex-wrap: wrap; gap: 6px; }
+      .hero-title { font-size: 16px; }
+      .filter-bar { height: auto; flex-wrap: wrap; padding: 8px 14px; gap: 6px; }
+      .filter-spacer { display: none; }
+      .filter-search { width: 100%; order: 99; }
+      .main-content { padding: 14px 14px 32px; }
+    }
+    @media (max-width: 480px) {
+      :root { --topbar-h: auto; }
+      .tracer-hero { position: static; padding: 10px 12px; flex-direction: column; align-items: flex-start; gap: 4px; }
+      .hero-title { font-size: 15px; }
+      .hero-tagline { font-size: 8px; }
+      .arsenal-badge { display: none; }
+      .filter-bar { position: static; height: auto; flex-wrap: wrap; padding: 8px 12px; gap: 6px; top: var(--nav-h); }
+      .filter-pill { min-height: 40px; padding: 0 14px; font-size: 11px; display: flex; align-items: center; }
+      .filter-spacer { display: none; }
+      .filter-search { width: 100%; order: 99; min-height: 40px; font-size: 12px; padding: 8px 12px; }
+      .main-content { padding: 12px 12px 28px; }
+      .query-card { padding: 12px 12px 10px; }
+      .btn-view, .btn-hide, .btn-copy { min-height: 40px; padding: 0 14px; font-size: 10px; display: inline-flex; align-items: center; justify-content: center; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="scroll-sentinel" aria-hidden="true"></div>
+  <canvas id="matrix"></canvas>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="hamburger" id="hamburger" onclick="toggleDrawer()">
+      <span></span><span></span><span></span>
+    </div>
+    <a class="nav-brand" href="https://h3ad-sec.github.io" target="_blank" rel="noopener">
+      <img id="navLogo" src="https://raw.githubusercontent.com/h3ad-sec/h3ad-sec.github.io/main/logo-dark.png" alt="H3AD-SEC" />
+    </a>
+    <a class="xv-nav-pill" href="https://h3ad-sec.github.io/PROMPTVAULT/" style="text-decoration:none">
+      <span class="xv-pill-name"><span class="xv-pill-accent">PROMPT</span><span class="xv-pill-text">VAULT</span></span>
+      <span class="xv-pill-tagline">AI Prompt Arsenal.</span>
+    </a>
+    <div class="nav-links">
+      <div class="nav-divider"></div>
+      <a href="https://h3ad-sec.github.io" target="_blank" rel="noopener">HOME</a>
+      <a href="https://h3ad-sec.github.io/H3AD/" target="_blank" rel="noopener">H3AD</a>
+      <div class="nav-divider"></div>
+      <div class="nav-item">
+        <a href="https://h3ad-sec.github.io/H3AD-X/" target="_blank" rel="noopener">H3AD-X</a>
+        <div class="nav-dropdown"><div class="nav-dropdown-inner">
+          <a href="https://h3ad-sec.github.io/X-VERDIKT/" target="_blank" rel="noopener">X-VERDIKT</a>
+          <a href="https://h3ad-sec.github.io/PARSE-X/" target="_blank" rel="noopener">PARSE-X</a>
+          <a href="https://h3ad-sec.github.io/DNSCOPE/" target="_blank" rel="noopener">DNSCOPE</a>
+        </div></div>
+      </div>
+      <div class="nav-item">
+        <a href="https://h3ad-sec.github.io/H3AD-AI/" target="_blank" rel="noopener">H3AD-AI</a>
+        <div class="nav-dropdown"><div class="nav-dropdown-inner">
+          <a href="https://h3ad-sec.github.io/PROMPTVAULT/" class="nav-current">PROMPTVAULT</a>
+        </div></div>
+      </div>
+      <div class="nav-item">
+        <a href="https://h3ad-sec.github.io/H3AD-DETECT/" target="_blank" rel="noopener">H3AD-DETECT</a>
+        <div class="nav-dropdown"><div class="nav-dropdown-inner">
+          <a href="https://h3ad-sec.github.io/TRACERULES/" target="_blank" rel="noopener">TRACERULES</a>
+        </div></div>
+      </div>
+      <div class="nav-item">
+        <a href="https://h3ad-sec.github.io/H3AD-HUNT/" target="_blank" rel="noopener">H3AD-HUNT</a>
+        <div class="nav-dropdown"><div class="nav-dropdown-inner">
+          <a href="https://h3ad-sec.github.io/HYPOS/" target="_blank" rel="noopener">HYPOS</a>
+          <a href="https://h3ad-sec.github.io/PIVEX/" target="_blank" rel="noopener">PIVEX</a>
+          <a href="https://h3ad-sec.github.io/TRACEPULSE/" target="_blank" rel="noopener">TRACEPULSE</a>
+        </div></div>
+      </div>
+      <div class="nav-item">
+        <a href="https://h3ad-sec.github.io/H3AD-OPS/" target="_blank" rel="noopener">H3AD-OPS</a>
+        <div class="nav-dropdown"><div class="nav-dropdown-inner">
+          <a href="https://h3ad-sec.github.io/QUICKTRACE/" target="_blank" rel="noopener">QUICKTRACE</a>
+        </div></div>
+      </div>
+      <a href="https://h3ad-sec.github.io/H3AD-DF/" target="_blank" rel="noopener">H3AD-DF</a>
+      <a href="https://h3ad-sec.github.io/H3AD-IR/" target="_blank" rel="noopener">H3AD-IR</a>
+      <div class="nav-divider"></div>
+      <a href="mailto:h3adsec@gmail.com">CONTACT</a>
+    </div>
+    <div class="nav-right">
+      <div class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile drawer -->
+  <div class="nav-drawer" id="navDrawer">
+    <a href="https://h3ad-sec.github.io" target="_blank" rel="noopener" onclick="closeDrawer()">HOME ↗</a>
+    <a href="https://h3ad-sec.github.io/H3AD/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD ↗</a>
+    <a href="https://h3ad-sec.github.io/H3AD-X/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD-X ↗</a>
+    <a href="https://h3ad-sec.github.io/X-VERDIKT/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ X-VERDIKT ↗</a>
+    <a href="https://h3ad-sec.github.io/PARSE-X/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ PARSE-X ↗</a>
+    <a href="https://h3ad-sec.github.io/DNSCOPE/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ DNSCOPE ↗</a>
+    <a href="https://h3ad-sec.github.io/H3AD-AI/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD-AI ↗</a>
+    <a href="https://h3ad-sec.github.io/PROMPTVAULT/" onclick="closeDrawer()" class="drawer-sub nav-current">↳ PROMPTVAULT</a>
+    <a href="https://h3ad-sec.github.io/H3AD-DETECT/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD-DETECT ↗</a>
+    <a href="https://h3ad-sec.github.io/TRACERULES/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ TRACERULES ↗</a>
+    <a href="https://h3ad-sec.github.io/H3AD-HUNT/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD-HUNT ↗</a>
+    <a href="https://h3ad-sec.github.io/HYPOS/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ HYPOS ↗</a>
+    <a href="https://h3ad-sec.github.io/PIVEX/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ PIVEX ↗</a>
+    <a href="https://h3ad-sec.github.io/TRACEPULSE/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ TRACEPULSE ↗</a>
+    <a href="https://h3ad-sec.github.io/H3AD-OPS/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD-OPS ↗</a>
+    <a href="https://h3ad-sec.github.io/QUICKTRACE/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ QUICKTRACE ↗</a>
+    <a href="https://h3ad-sec.github.io/H3AD-DF/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD-DF ↗</a>
+    <a href="https://h3ad-sec.github.io/H3AD-IR/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD-IR ↗</a>
+    <a href="mailto:h3adsec@gmail.com" onclick="closeDrawer()">CONTACT</a>
+  </div>
+
+  <div class="page-wrap">
+
+    <!-- Hero strip -->
+    <div class="tracer-hero">
+      <div class="hero-left">
+        <div class="hero-breadcrumb">
+          <a href="https://h3ad-sec.github.io" target="_blank" rel="noopener">H3AD-SEC</a>
+          <span>›</span>
+          <a href="https://h3ad-sec.github.io/H3AD-AI/" target="_blank" rel="noopener">H3AD-AI</a>
+          <span>›</span>
+          <a href="https://h3ad-sec.github.io/PROMPTVAULT/">PROMPTVAULT</a>
+        </div>
+        <div class="hero-title-row">
+          <span class="hero-title">PROMPTVAULT</span>
+          <span class="hero-tagline">AI PROMPT ARSENAL</span>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="arsenal-badge">COMMUNITY</div>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <button class="filter-pill active" data-filter="all" onclick="setFilter('all')">ALL</button>
+      <button class="filter-pill pill-triage"  data-filter="triage"  onclick="setFilter('triage')">TRIAGE</button>
+      <button class="filter-pill pill-detect"  data-filter="detect"  onclick="setFilter('detect')">DETECT</button>
+      <button class="filter-pill pill-intel"   data-filter="intel"   onclick="setFilter('intel')">INTEL</button>
+      <button class="filter-pill pill-hunt"    data-filter="hunt"    onclick="setFilter('hunt')">HUNT</button>
+      <button class="filter-pill pill-respond" data-filter="respond" onclick="setFilter('respond')">RESPOND</button>
+      <button class="filter-pill pill-analyze" data-filter="analyze" onclick="setFilter('analyze')">ANALYZE</button>
+      <div class="filter-spacer"></div>
+      <input class="filter-search" id="searchInput" type="text" placeholder="search prompts..." oninput="onSearch()" autocomplete="off" spellcheck="false" />
+    </div>
+
+    <!-- Main content -->
+    <div class="main-content">
+      <div id="queryCount" class="query-count" style="display:none"></div>
+      <div id="queryGrid" class="query-grid">
+        <div class="state-panel" id="loadingState" style="grid-column:1/-1">
+          <div class="state-loading-text">LOADING VAULT...</div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="tracer-footer">
+      H3AD-SEC &middot; PROMPTVAULT &middot; AI PROMPT ARSENAL &middot;
+      <a class="footer-link" href="https://github.com/h3ad-sec/PROMPTVAULT" target="_blank" rel="noopener">CONTRIBUTE ON GITHUB ↗</a>
+    </footer>
+
+  </div>
+
+  <script>
+    // ── Theme ──
+    (function () {
+      var saved = localStorage.getItem('h3ad-theme');
+      if (saved === 'light') document.body.classList.add('light');
+      var logo = document.getElementById('navLogo');
+      if (logo) logo.src = document.body.classList.contains('light')
+        ? 'https://raw.githubusercontent.com/h3ad-sec/h3ad-sec.github.io/main/logo-light.png'
+        : 'https://raw.githubusercontent.com/h3ad-sec/h3ad-sec.github.io/main/logo-dark.png';
+    })();
+
+    function toggleTheme() {
+      var isLight = document.body.classList.toggle('light');
+      localStorage.setItem('h3ad-theme', isLight ? 'light' : 'dark');
+      var logo = document.getElementById('navLogo');
+      if (logo) logo.src = isLight
+        ? 'https://raw.githubusercontent.com/h3ad-sec/h3ad-sec.github.io/main/logo-light.png'
+        : 'https://raw.githubusercontent.com/h3ad-sec/h3ad-sec.github.io/main/logo-dark.png';
+    }
+
+    function toggleDrawer() { document.getElementById('navDrawer').classList.toggle('open'); }
+    function closeDrawer()  { document.getElementById('navDrawer').classList.remove('open'); }
+
+    // ── Hero scroll hide ──
+    (function () {
+      var s = document.getElementById('scroll-sentinel');
+      if (!s) return;
+      new IntersectionObserver(function (e) {
+        document.body.classList.toggle('hero-hidden', !e[0].isIntersecting);
+      }, { threshold: 0 }).observe(s);
+    })();
+
+    // ── Matrix rain ──
+    (function () {
+      var canvas = document.getElementById('matrix');
+      if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      var terms = [
+        'GPT-4o', 'Claude', 'Llama', 'GEMINI', 'PROMPT', 'SYSTEM', 'ROLE',
+        'TRIAGE', 'DETECT', 'INTEL', 'HUNT', 'RESPOND', 'ANALYZE',
+        'SIGMA', 'KQL', 'MITRE', 'TTPs', 'IOC', 'VERDICT', 'SOC',
+        'T1059', 'T1078', 'T1566', 'TA0002', 'ZERO-SHOT', 'FEW-SHOT',
+        'CHAIN', 'CONTEXT', 'RAG', 'EMBEDDING', 'AI', 'LLM', 'INFERENCE',
+        'ALERT', 'HUNT', 'ENRICH', 'PIVOT', 'SCOPE', 'VAULT', 'H3AD'
+      ];
+      var cols, drops, fs = 13;
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        cols = Math.floor(canvas.width / fs);
+        drops = Array(cols).fill(1);
+      }
+      function draw() {
+        var l = document.body.classList.contains('light');
+        ctx.fillStyle = l ? 'rgba(245,247,251,0.08)' : 'rgba(0,0,0,0.12)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = l ? '#0077ff' : '#00ff9f';
+        ctx.font = fs + 'px Share Tech Mono,monospace';
+        for (var i = 0; i < drops.length; i++) {
+          ctx.fillText(terms[Math.floor(Math.random() * terms.length)], i * fs, drops[i] * fs);
+          if (drops[i] * fs > canvas.height && Math.random() > 0.975) drops[i] = 0;
+          drops[i]++;
+        }
+      }
+      resize();
+      window.addEventListener('resize', resize);
+      setInterval(draw, 55);
+    })();
+
+    // ── State ──
+    var allPrompts = [];
+    var activeFilter = 'all';
+    var searchTerm = '';
+    var MANIFEST_URL = 'https://raw.githubusercontent.com/h3ad-sec/PROMPTVAULT/main/data/prompts-manifest.json';
+
+    var CAT_COLORS = {
+      triage:  '#f59e0b',
+      detect:  '#4d94ff',
+      intel:   '#a855f7',
+      hunt:    '#00ff9f',
+      respond: '#ff6b35',
+      analyze: '#06b6d4'
+    };
+
+    function getCatColor(cat) {
+      return CAT_COLORS[cat] || '#62809c';
+    }
+
+    function escapeHtml(s) {
+      return String(s || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function renderPrompt(text) {
+      return escapeHtml(text).replace(/\{([^}]+)\}/g, '<span class="placeholder">{$1}</span>');
+    }
+
+    // ── Build card HTML ──
+    function buildCard(entry, idx) {
+      var cat   = (entry.category || 'detect').toLowerCase();
+      var color = getCatColor(cat);
+      var title    = escapeHtml(entry.title || 'Untitled');
+      var useCase  = escapeHtml(entry.use_case || '');
+      var bestWith = entry.best_with ? escapeHtml(entry.best_with) : '';
+      var tags     = (entry.tags || []).slice(0, 5).map(function (t) {
+        return '<span class="tag-pill">' + escapeHtml(t) + '</span>';
+      }).join('');
+
+      var hasVariants = entry.variants && entry.variants.length > 0;
+      var hasMitre    = entry.mitre && entry.mitre.length > 0;
+
+      // Build tabs + tab contents
+      var tabs = '';
+      var tabContents = '';
+
+      tabs += '<button class="model-tab active" onclick="switchTab(this,\'tab-base-' + idx + '\')">BASE</button>';
+      tabContents += '<div class="tab-content active" id="tab-base-' + idx + '">'
+        + '<div class="prompt-block"><pre>' + renderPrompt(entry.prompt || '') + '</pre></div>'
+        + '</div>';
+
+      if (hasVariants) {
+        entry.variants.forEach(function (v, vi) {
+          var label = (v.model || 'model').toUpperCase();
+          var tabId = 'tab-var-' + idx + '-' + vi;
+          tabs += '<button class="model-tab" onclick="switchTab(this,\'' + tabId + '\')">' + escapeHtml(label) + '</button>';
+          tabContents += '<div class="tab-content" id="' + tabId + '">'
+            + '<div class="prompt-block"><pre>' + renderPrompt(v.prompt || '') + '</pre></div>'
+            + (v.notes ? '<div class="variant-notes">&#9888; ' + escapeHtml(v.notes) + '</div>' : '')
+            + '</div>';
+        });
+      }
+
+      var limitationsHtml = entry.limitations
+        ? '<div class="limitations-note">&#9888; ' + escapeHtml(entry.limitations) + '</div>' : '';
+
+      var exampleHtml = entry.example_output
+        ? '<details class="example-details"><summary class="example-summary">&#9654; EXAMPLE OUTPUT</summary>'
+          + '<div class="example-block"><pre>' + escapeHtml(entry.example_output) + '</pre></div>'
+          + '</details>' : '';
+
+      var mitreHtml = hasMitre
+        ? '<div class="mitre-tags">' + entry.mitre.map(function (t) {
+            return '<span class="mitre-tag">' + escapeHtml(t) + '</span>';
+          }).join('') + '</div>' : '';
+
+      var catStyle = 'color:' + color + ';background:' + color + '18;border-color:' + color + '44';
+
+      return '<div class="query-card" id="card-' + idx + '">'
+        + '<div class="card-top">'
+        + '<div class="card-title">' + title + '</div>'
+        + '<span class="cat-badge" style="' + catStyle + '">' + cat.toUpperCase() + '</span>'
+        + '</div>'
+        + (useCase ? '<div class="card-desc">' + useCase + '</div>' : '')
+        + '<div class="card-meta">'
+        + (bestWith ? '<span class="best-with-badge">best: ' + bestWith + '</span>' : '')
+        + '<div class="tag-row">' + tags + '</div>'
+        + '</div>'
+        + '<div class="card-footer">'
+        + '<button class="btn-view" onclick="toggleView(' + idx + ')">&#x25B6; VIEW PROMPT</button>'
+        + '</div>'
+        + '<div class="query-expanded" id="expanded-' + idx + '">'
+        + (hasVariants ? '<div class="model-tabs" id="tabs-' + idx + '">' + tabs + '</div>' : '')
+        + tabContents
+        + limitationsHtml
+        + exampleHtml
+        + mitreHtml
+        + '<div class="expanded-actions">'
+        + '<button class="btn-hide" onclick="toggleView(' + idx + ')">&#x25B2; HIDE</button>'
+        + '<button class="btn-copy" id="copy-' + idx + '" onclick="copyPrompt(' + idx + ')">COPY PROMPT</button>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
+    }
+
+    // ── Model tab switcher ──
+    function switchTab(btn, tabId) {
+      var card = btn.closest('.query-card');
+      if (!card) return;
+      card.querySelectorAll('.model-tab').forEach(function (b) { b.classList.remove('active'); });
+      card.querySelectorAll('.tab-content').forEach(function (c) { c.classList.remove('active'); });
+      btn.classList.add('active');
+      var tab = document.getElementById(tabId);
+      if (tab) tab.classList.add('active');
+    }
+
+    // ── Render grid ──
+    function renderGrid(prompts) {
+      var grid  = document.getElementById('queryGrid');
+      var count = document.getElementById('queryCount');
+
+      if (!prompts || prompts.length === 0) {
+        grid.innerHTML = '<div class="state-panel" style="grid-column:1/-1">'
+          + '<div class="state-title">NO PROMPTS MATCH</div>'
+          + '<div class="state-desc">Adjust filters or search term.</div>'
+          + '</div>';
+        count.style.display = 'none';
+        return;
+      }
+
+      count.innerHTML = '<span>' + prompts.length + '</span> '
+        + (prompts.length === 1 ? 'PROMPT' : 'PROMPTS');
+      count.style.display = 'block';
+
+      grid.innerHTML = prompts.map(function (p) {
+        return buildCard(p, p._idx);
+      }).join('');
+    }
+
+    function getFiltered() {
+      return allPrompts.filter(function (p) {
+        var matchCat = activeFilter === 'all' || (p.category || '').toLowerCase() === activeFilter;
+        if (!matchCat) return false;
+        if (!searchTerm) return true;
+        var haystack = [
+          p.title || '', p.use_case || '',
+          (p.tags || []).join(' '),
+          (p.mitre || []).join(' '),
+          p.best_with || '', p.category || ''
+        ].join(' ').toLowerCase();
+        return haystack.indexOf(searchTerm) !== -1;
+      });
+    }
+
+    // ── Filter / search ──
+    function setFilter(f) {
+      activeFilter = f;
+      document.querySelectorAll('.filter-pill').forEach(function (pill) {
+        pill.classList.toggle('active', pill.dataset.filter === f);
+      });
+      renderGrid(getFiltered());
+    }
+
+    function onSearch() {
+      searchTerm = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+      renderGrid(getFiltered());
+    }
+
+    // ── Toggle expand ──
+    function toggleView(idx) {
+      var expanded = document.getElementById('expanded-' + idx);
+      if (!expanded) return;
+      var isOpen = expanded.classList.contains('open');
+
+      document.querySelectorAll('.query-expanded.open').forEach(function (el) {
+        el.classList.remove('open');
+      });
+
+      if (!isOpen) expanded.classList.add('open');
+    }
+
+    // ── Copy prompt (active tab) ──
+    function copyPrompt(idx) {
+      var card = document.getElementById('card-' + idx);
+      if (!card) return;
+
+      var activeTab = card.querySelector('.tab-content.active');
+      if (!activeTab) return;
+
+      var pre = activeTab.querySelector('pre');
+      if (!pre) return;
+
+      var text = pre.textContent || pre.innerText || '';
+      navigator.clipboard.writeText(text).then(function () {
+        var btn = document.getElementById('copy-' + idx);
+        if (btn) {
+          btn.textContent = 'COPIED ✓';
+          setTimeout(function () { btn.textContent = 'COPY PROMPT'; }, 1800);
+        }
+      }).catch(function () {
+        var range = document.createRange();
+        range.selectNodeContents(pre);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+      });
+    }
+
+    // ── Error state ──
+    function showError() {
+      var grid  = document.getElementById('queryGrid');
+      var count = document.getElementById('queryCount');
+      count.style.display = 'none';
+      grid.innerHTML = '<div class="state-panel" style="grid-column:1/-1">'
+        + '<div class="state-title">VAULT OFFLINE</div>'
+        + '<div class="state-desc">Failed to load prompt data. Check your connection or try again.</div>'
+        + '<button class="btn-retry" onclick="loadManifest()">RETRY</button>'
+        + '</div>';
+    }
+
+    // ── Load manifest ──
+    function loadManifest() {
+      var grid  = document.getElementById('queryGrid');
+      var count = document.getElementById('queryCount');
+      count.style.display = 'none';
+      grid.innerHTML = '<div class="state-panel" id="loadingState" style="grid-column:1/-1">'
+        + '<div class="state-loading-text">LOADING VAULT...</div>'
+        + '</div>';
+
+      fetch(MANIFEST_URL)
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function (data) {
+          var prompts = data.prompts || [];
+          allPrompts = prompts.map(function (p, i) {
+            p._idx = i;
+            return p;
+          });
+          renderGrid(getFiltered());
+        })
+        .catch(function () { showError(); });
+    }
+
+    loadManifest();
+  </script>
+</body>
+</html>

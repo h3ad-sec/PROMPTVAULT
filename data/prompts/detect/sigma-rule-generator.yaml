@@ -1,0 +1,103 @@
+id: sigma-rule-generator
+title: Sigma Rule Generator
+category: detect
+use_case: Generate a valid Sigma rule from a plain-English description of an attack behavior
+tags: [sigma, rule-writing, detection, blue-team]
+mitre: [T1059, T1078, T1566]
+author: hrushikesh-badgujar
+contributed: 2026-05-19
+best_with: claude-3.5-sonnet
+limitations: Hallusinates field names for uncommon log sources — always validate detection fields against your SIEM schema before deployment
+
+prompt: |
+  You are a detection engineer with deep expertise in Sigma rule authoring.
+
+  Attack behavior to detect:
+  {DESCRIBE THE ATTACK BEHAVIOR IN PLAIN ENGLISH}
+
+  Write a valid Sigma rule that detects this behavior. Follow these requirements exactly:
+  - Use standard Sigma YAML structure: title, id, status, description, references, author, date, tags, logsource, detection, falsepositives, level
+  - Set status to "experimental"
+  - Choose the most specific logsource available (product, service, or category)
+  - Write detection logic using keywords, selection, and condition fields
+  - Use field names from common log sources (Windows Event Log, Sysmon, auditd, etc.)
+  - Include at least two realistic false positive scenarios
+  - Set an appropriate level: informational | low | medium | high | critical
+  - Add MITRE ATT&CK tags in format: attack.tXXXX and attack.tactic
+
+  Output ONLY the Sigma rule in YAML. No explanation, no markdown fences, no commentary.
+
+example_output: |
+  title: Suspicious PowerShell Encoded Command Execution
+  id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+  status: experimental
+  description: Detects execution of PowerShell with base64-encoded commands, commonly used by attackers to obfuscate malicious payloads
+  references:
+    - https://attack.mitre.org/techniques/T1059/001/
+  author: hrushikesh-badgujar
+  date: 2026/05/19
+  tags:
+    - attack.execution
+    - attack.t1059.001
+    - attack.defense_evasion
+    - attack.t1027
+  logsource:
+    category: process_creation
+    product: windows
+  detection:
+    selection:
+      Image|endswith: '\powershell.exe'
+      CommandLine|contains:
+        - '-EncodedCommand'
+        - '-enc '
+        - '-ec '
+    condition: selection
+  falsepositives:
+    - Legitimate administrative scripts using encoded commands
+    - Software installers that invoke encoded PowerShell during setup
+  level: medium
+
+variants:
+  - model: gpt-4o
+    prompt: |
+      You are a detection engineer. Generate a Sigma rule to detect the following attack behavior:
+
+      {DESCRIBE THE ATTACK BEHAVIOR IN PLAIN ENGLISH}
+
+      Rules:
+      1. Use valid Sigma YAML format with all required fields
+      2. status: experimental
+      3. Include realistic MITRE ATT&CK tags (attack.tXXXX)
+      4. Use specific logsource — do not use "generic"
+      5. Write a condition that minimizes false positives
+      6. List two false positive scenarios
+      7. Output ONLY the YAML. No explanation.
+    notes: GPT-4o adds markdown code fences and preamble by default — the explicit "Output ONLY the YAML" helps but still verify field names against your schema.
+  - model: llama-3.1-70b
+    prompt: |
+      Task: Write a Sigma detection rule for the attack behavior below.
+
+      Attack behavior:
+      {DESCRIBE THE ATTACK BEHAVIOR IN PLAIN ENGLISH}
+
+      Output format — return ONLY this YAML structure, nothing else:
+
+      title: [rule title]
+      id: [generate a UUID]
+      status: experimental
+      description: [one sentence]
+      tags:
+        - attack.[tactic]
+        - attack.t[technique_id]
+      logsource:
+        category: [process_creation|network_connection|file_event|etc]
+        product: [windows|linux|macos]
+      detection:
+        selection:
+          [field]: [value]
+        condition: selection
+      falsepositives:
+        - [scenario 1]
+        - [scenario 2]
+      level: [informational|low|medium|high|critical]
+    notes: Llama adds prose between YAML fields without an explicit skeleton. Providing the structure directly produces clean output — replace placeholders before submitting.

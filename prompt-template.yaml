@@ -1,0 +1,35 @@
+# PROMPTVAULT contribution template
+# Copy this file to data/prompts/{category}/{your-prompt-id}.yaml
+# Categories: triage | detect | intel | hunt | respond | analyze
+
+id: your-prompt-id                         # kebab-case, unique
+title: Your Prompt Title
+category: detect                           # triage | detect | intel | hunt | respond | analyze
+use_case: One sentence — what this prompt does and when to use it
+tags: [tag1, tag2, tag3]                   # lowercase, relevant keywords
+mitre: [T1059, T1078]                      # omit if not applicable
+author: your-github-handle
+contributed: YYYY-MM-DD
+best_with: claude-3.5-sonnet              # model this was tested and optimized on
+limitations: One sentence — what this prompt gets wrong or when it fails
+
+prompt: |
+  Your prompt text here.
+  Use {PLACEHOLDER} for user-supplied input.
+  Be explicit about output format.
+  End with: Output ONLY the requested format. No explanation.
+
+example_output: |
+  Paste a real output from your model here.
+  This is what users should expect to see.
+
+# Optional — add if you tested on other models
+variants:
+  - model: gpt-4o
+    prompt: |
+      Model-specific version of the prompt.
+    notes: What's different and why you changed it.
+  - model: llama-3.1-70b
+    prompt: |
+      Model-specific version of the prompt.
+    notes: What's different and why you changed it.

@@ -1,0 +1,77 @@
+{
+  "generated": "2026-05-19T00:00:00.000Z",
+  "count": 3,
+  "prompts": [
+    {
+      "id": "alert-triage-assistant",
+      "title": "Alert Triage Assistant",
+      "category": "triage",
+      "use_case": "Triage a raw alert or log snippet and return a structured analyst verdict with MITRE mapping and next steps",
+      "tags": ["triage", "alert-analysis", "soc", "l1", "l2", "verdict"],
+      "mitre": [],
+      "author": "hrushikesh-badgujar",
+      "contributed": "2026-05-19",
+      "best_with": "claude-3.5-sonnet",
+      "limitations": "Verdict accuracy depends on alert context richness — sparse alerts produce low-confidence outputs. Always apply analyst judgment before escalating or suppressing.",
+      "prompt": "You are a SOC analyst with L2 experience performing structured alert triage.\n\nAlert to triage:\n{PASTE THE RAW ALERT, LOG LINES, OR SIEM NOTIFICATION HERE}\n\nAnalyze the alert and return ONLY the following structure. Do not add any other text.\n\nVERDICT: [Malicious / Likely Malicious / Suspicious / Likely Benign / Benign]\nCONFIDENCE: [High / Medium / Low]\nREASON: [One sentence explaining the verdict]\n\nMITRE TTPs:\n- [T####.###]: [Technique Name]\n\nSUMMARY:\n[2-3 sentences describing what likely happened, what asset is at risk, and why this matters]\n\nNEXT STEPS:\n1. [Immediate action]\n2. [Investigation step]\n3. [Containment or follow-up]\n\nSUPPRESSION CRITERIA: [Exact conditions under which this alert can be safely suppressed — or \"Do not suppress\"]\n\nESCALATE: [Yes / No] — [One-line reason]",
+      "example_output": "VERDICT: Likely Malicious\nCONFIDENCE: Medium\nREASON: PowerShell downloading a remote payload via IEX is a well-established execution pattern rarely seen in legitimate workflows.\n\nMITRE TTPs:\n- T1059.001: PowerShell\n- T1105: Ingress Tool Transfer\n\nSUMMARY:\nA PowerShell process on WKSTN-042 executed an IEX(DownloadString) command pulling content from an external IP (185.220.x.x). The external IP falls in a Tor exit node range, suggesting deliberate obfuscation. The target is an end-user workstation that may now have a foothold established.\n\nNEXT STEPS:\n1. Isolate WKSTN-042 from the network immediately\n2. Pull the full PowerShell command-line history and child process tree\n3. Check for persistence — scheduled tasks, registry run keys, new accounts created in the past 24h\n\nSUPPRESSION CRITERIA: Do not suppress — active download behavior to Tor infrastructure warrants investigation regardless of frequency.\n\nESCALATE: Yes — active potential compromise with network isolation required",
+      "variants": [
+        {
+          "model": "gpt-4o",
+          "prompt": "You are a Tier 2 SOC analyst performing structured alert triage.\n\nAlert:\n{PASTE THE RAW ALERT HERE}\n\nReturn your analysis in this exact format only — no preamble, no commentary:\n\nVERDICT: [Malicious / Likely Malicious / Suspicious / Likely Benign / Benign]\nCONFIDENCE: [High / Medium / Low]\nREASON: [One sentence]\nMITRE TTPs: [comma-separated T#### IDs and names]\nSUMMARY: [2-3 sentences]\nNEXT STEPS: [numbered list, max 3]\nSUPPRESSION CRITERIA: [one line or \"Do not suppress\"]\nESCALATE: [Yes/No — one-line reason]",
+          "notes": "GPT-4o adds a preamble before VERDICT — \"no preamble, no commentary\" reduces it. Still sometimes reformats the MITRE field, watch for it."
+        }
+      ],
+      "file": "prompts/triage/alert-triage-assistant.yaml"
+    },
+    {
+      "id": "sigma-rule-generator",
+      "title": "Sigma Rule Generator",
+      "category": "detect",
+      "use_case": "Generate a valid Sigma rule from a plain-English description of an attack behavior",
+      "tags": ["sigma", "rule-writing", "detection", "blue-team"],
+      "mitre": ["T1059", "T1078", "T1566"],
+      "author": "hrushikesh-badgujar",
+      "contributed": "2026-05-19",
+      "best_with": "claude-3.5-sonnet",
+      "limitations": "Hallusinates field names for uncommon log sources — always validate detection fields against your SIEM schema before deployment",
+      "prompt": "You are a detection engineer with deep expertise in Sigma rule authoring.\n\nAttack behavior to detect:\n{DESCRIBE THE ATTACK BEHAVIOR IN PLAIN ENGLISH}\n\nWrite a valid Sigma rule that detects this behavior. Follow these requirements exactly:\n- Use standard Sigma YAML structure: title, id, status, description, references, author, date, tags, logsource, detection, falsepositives, level\n- Set status to \"experimental\"\n- Choose the most specific logsource available (product, service, or category)\n- Write detection logic using keywords, selection, and condition fields\n- Use field names from common log sources (Windows Event Log, Sysmon, auditd, etc.)\n- Include at least two realistic false positive scenarios\n- Set an appropriate level: informational | low | medium | high | critical\n- Add MITRE ATT&CK tags in format: attack.tXXXX and attack.tactic\n\nOutput ONLY the Sigma rule in YAML. No explanation, no markdown fences, no commentary.",
+      "example_output": "title: Suspicious PowerShell Encoded Command Execution\nid: a1b2c3d4-e5f6-7890-abcd-ef1234567890\nstatus: experimental\ndescription: Detects execution of PowerShell with base64-encoded commands, commonly used by attackers to obfuscate malicious payloads\nreferences:\n  - https://attack.mitre.org/techniques/T1059/001/\nauthor: hrushikesh-badgujar\ndate: 2026/05/19\ntags:\n  - attack.execution\n  - attack.t1059.001\n  - attack.defense_evasion\n  - attack.t1027\nlogsource:\n  category: process_creation\n  product: windows\ndetection:\n  selection:\n    Image|endswith: '\\powershell.exe'\n    CommandLine|contains:\n      - '-EncodedCommand'\n      - '-enc '\n      - '-ec '\n  condition: selection\nfalsepositives:\n  - Legitimate administrative scripts using encoded commands\n  - Software installers that invoke encoded PowerShell during setup\nlevel: medium",
+      "variants": [
+        {
+          "model": "gpt-4o",
+          "prompt": "You are a detection engineer. Generate a Sigma rule to detect the following attack behavior:\n\n{DESCRIBE THE ATTACK BEHAVIOR IN PLAIN ENGLISH}\n\nRules:\n1. Use valid Sigma YAML format with all required fields\n2. status: experimental\n3. Include realistic MITRE ATT&CK tags (attack.tXXXX)\n4. Use specific logsource — do not use \"generic\"\n5. Write a condition that minimizes false positives\n6. List two false positive scenarios\n7. Output ONLY the YAML. No explanation.",
+          "notes": "GPT-4o adds markdown code fences and preamble by default — the explicit \"Output ONLY the YAML\" helps but still verify field names against your schema."
+        },
+        {
+          "model": "llama-3.1-70b",
+          "prompt": "Task: Write a Sigma detection rule for the attack behavior below.\n\nAttack behavior:\n{DESCRIBE THE ATTACK BEHAVIOR IN PLAIN ENGLISH}\n\nOutput format — return ONLY this YAML structure, nothing else:\n\ntitle: [rule title]\nid: [generate a UUID]\nstatus: experimental\ndescription: [one sentence]\ntags:\n  - attack.[tactic]\n  - attack.t[technique_id]\nlogsource:\n  category: [process_creation|network_connection|file_event|etc]\n  product: [windows|linux|macos]\ndetection:\n  selection:\n    [field]: [value]\n  condition: selection\nfalsepositives:\n  - [scenario 1]\n  - [scenario 2]\nlevel: [informational|low|medium|high|critical]",
+          "notes": "Llama adds prose between YAML fields without an explicit skeleton. Providing the structure directly produces clean output."
+        }
+      ],
+      "file": "prompts/detect/sigma-rule-generator.yaml"
+    },
+    {
+      "id": "threat-intel-summarizer",
+      "title": "Threat Intel Summarizer",
+      "category": "intel",
+      "use_case": "Extract structured, SOC-ready intelligence from a raw threat report, blog post, or advisory",
+      "tags": ["threat-intel", "summarization", "ioc-extraction", "ttp-analysis", "cti"],
+      "mitre": [],
+      "author": "hrushikesh-badgujar",
+      "contributed": "2026-05-19",
+      "best_with": "claude-3.5-sonnet",
+      "limitations": "May miss obfuscated indicators (defanged URLs, hex-encoded IPs) — scan the output manually. Does not replace dedicated IOC extraction tools like PARSE-X.",
+      "prompt": "You are a threat intelligence analyst preparing a structured intelligence summary for SOC distribution.\n\nThreat report:\n{PASTE THE FULL THREAT REPORT, BLOG POST, OR ADVISORY HERE}\n\nExtract and return ONLY the following. Write \"Not mentioned\" for any field with no data.\n\nTHREAT ACTOR: [Name or \"Unknown\"]\nMOTIVATION: [Financial / Espionage / Hacktivism / Destructive / Unknown]\nTARGETS: [Industries, geographies, or named organizations]\nACTIVE SINCE: [Date or \"Unknown\"]\n\nTTPs:\n- [T####.###] [Technique Name]: [How the actor used it — one sentence]\n\nINDICATORS OF COMPROMISE:\n- IPs: [one per line]\n- Domains: [one per line]\n- File Hashes: [hash type + value, one per line]\n- URLs: [one per line]\n- Email Addresses: [one per line]\n\nDETECTION OPPORTUNITIES:\n- [Specific log source or behavior to hunt for — max 5]\n\nHUNTING HYPOTHESES:\n- [Specific, testable hypothesis — max 3]\n\nRECOMMENDED MITIGATIONS:\n- [CVE ID or security control — one per line]\n\nPRIORITY: [Critical / High / Medium / Low] — [One-line rationale]",
+      "example_output": "THREAT ACTOR: Lazarus Group (aka HIDDEN COBRA)\nMOTIVATION: Financial\nTARGETS: Cryptocurrency exchanges, DeFi platforms — primarily Southeast Asia and Europe\nACTIVE SINCE: 2009\n\nTTPs:\n- T1566.002 Spearphishing Link: Sent lure emails with job offer PDFs linking to weaponized Google Drive documents\n- T1059.001 PowerShell: Executed encoded commands post-phishing to pull second-stage payload\n- T1055.012 Process Hollowing: Injected payload into legitimate svchost.exe to evade EDR detection\n\nINDICATORS OF COMPROMISE:\n- IPs:\n  185.220.101.45\n  91.108.4.77\n- Domains:\n  update-service[.]net\n  cdn-delivery[.]org\n- File Hashes:\n  SHA256: a3f1b2c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2\n- URLs:\n  hxxps://update-service[.]net/payload.bin\n- Email Addresses: Not mentioned\n\nDETECTION OPPORTUNITIES:\n- PowerShell spawned by Outlook or browser processes (parent-child chain)\n- Outbound connections to domains registered within the past 30 days from workstations\n- svchost.exe executing from non-System32 paths\n\nHUNTING HYPOTHESES:\n- Finance-team workstations made outbound connections to newly registered domains in the past 30 days\n- PowerShell with encoded commands executed within 1 hour of an email open event\n- svchost.exe instances with unusual parent processes (not services.exe)\n\nRECOMMENDED MITIGATIONS:\n- Disable Office macros from internet-sourced documents via GPO\n- Block outbound connections to domains registered less than 30 days ago at the proxy\n- Deploy AppLocker to restrict PowerShell from user-writable paths\n\nPRIORITY: High — active financial sector targeting with well-documented TTPs and high detection confidence",
+      "variants": [
+        {
+          "model": "gpt-4o",
+          "prompt": "You are a CTI analyst. Extract structured intelligence from the report below for SOC distribution.\n\nReport:\n{PASTE THE THREAT REPORT HERE}\n\nReturn ONLY this structure — no prose, no preamble:\n\nTHREAT ACTOR: [name or Unknown]\nMOTIVATION: [Financial/Espionage/Hacktivism/Destructive/Unknown]\nTARGETS: [industries or organizations]\nTTPs: [T####.### Name: how used — one per line]\nIOCs:\n  IPs: [one per line]\n  Domains: [one per line]\n  Hashes: [one per line]\n  URLs: [one per line]\nDETECTION OPPORTUNITIES: [max 5, one per line]\nHUNTING HYPOTHESES: [max 3, one per line]\nMITIGATIONS: [one per line]\nPRIORITY: [Critical/High/Medium/Low — reason]",
+          "notes": "GPT-4o handles large reports well but truncates long IOC lists — follow up with \"list all IOCs without truncation\" if the report is IOC-heavy."
+        }
+      ],
+      "file": "prompts/intel/threat-intel-summarizer.yaml"
+    }
+  ]
+}
