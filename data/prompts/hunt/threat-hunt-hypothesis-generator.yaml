@@ -1,0 +1,101 @@
+id: threat-hunt-hypothesis-generator
+title: Threat Hunt Hypothesis Generator
+category: hunt
+use_case: Generate structured, testable hunting hypotheses from a TTP ID or threat actor behavior
+tags: [threat-hunting, hypothesis, ttp, mitre, proactive-defense]
+mitre: [T1059, T1078, T1021]
+author: hrushikesh-badgujar
+contributed: 2026-05-28
+best_with: claude-3.5-sonnet
+limitations: Hypotheses are only as specific as the input — vague TTP descriptions produce generic output. Data source assumptions target common enterprise stacks; verify field availability in your SIEM before hunting.
+
+prompt: |
+  You are a senior threat hunter with expertise in hypothesis-driven hunting.
+
+  TTP or threat behavior to hunt:
+  {PASTE TTP ID, TECHNIQUE NAME, OR THREAT ACTOR BEHAVIOR HERE}
+
+  Generate structured hunting hypotheses for this technique. Return ONLY the following structure. Do not add any other text.
+
+  HUNT SCOPE: [Endpoint / Network / Cloud / Identity / Multi-domain]
+  TECHNIQUE: [T####.###] [Technique Name]
+
+  HYPOTHESES:
+  1. [Testable — "If [actor behavior], then [observable evidence] in [data source]"]
+  2. [Second hypothesis]
+  3. [Third hypothesis]
+
+  DATA SOURCES REQUIRED:
+  - [Log source: specific field or event ID needed — one per line]
+
+  BASELINE QUESTIONS:
+  - [What is normal for this data source in your environment?]
+  - [What threshold distinguishes noise from signal?]
+
+  KQL HUNT QUERY:
+  [1-2 KQL queries targeting the primary hypothesis]
+
+  SIGMA CONDITION:
+  [1 Sigma-style detection condition for correlation rules]
+
+  SUCCESS CRITERIA: [What observable finding confirms the hypothesis — or rules it out]
+
+  LOOKBACK WINDOW: [Recommended time range and why]
+
+example_output: |
+  HUNT SCOPE: Endpoint
+  TECHNIQUE: T1059.001 PowerShell
+
+  HYPOTHESES:
+  1. If an attacker uses PowerShell for lateral movement, then encoded command executions spawned by remote management services (WinRM, WMI) will appear in process creation logs on non-admin workstations.
+  2. If PowerShell is used for C2 communication, then outbound connections from powershell.exe to non-CDN IPs on ports 443/80 without a matching browser process will appear in network logs.
+  3. If PowerShell is used for credential access, then LSASS reads by a PowerShell child process will appear in Sysmon Event ID 10 logs within 10 minutes of PowerShell execution.
+
+  DATA SOURCES REQUIRED:
+  - Windows Security Event ID 4688 (process creation with command line auditing enabled)
+  - Sysmon Event ID 1 (process creation), 3 (network connection), 10 (process access)
+  - EDR telemetry: parent-child process trees
+
+  BASELINE QUESTIONS:
+  - What is the normal rate of PowerShell execution per day per endpoint in your environment?
+  - Which teams (IT, DevOps) legitimately use encoded commands — and from which hosts?
+
+  KQL HUNT QUERY:
+  DeviceProcessEvents
+  | where FileName =~ "powershell.exe"
+  | where InitiatingProcessFileName in~ ("wmiprvse.exe", "wsmprovhost.exe", "svchost.exe")
+  | where ProcessCommandLine has_any ("-EncodedCommand", "-enc ", "-ec ", "IEX", "DownloadString")
+  | where DeviceId !in (allowlisted_admin_hosts)
+  | project Timestamp, DeviceName, AccountName, ProcessCommandLine, InitiatingProcessFileName
+
+  SIGMA CONDITION:
+  selection:
+    Image|endswith: '\powershell.exe'
+    ParentImage|endswith:
+      - '\wmiprvse.exe'
+      - '\wsmprovhost.exe'
+    CommandLine|contains:
+      - '-EncodedCommand'
+      - 'IEX'
+  condition: selection
+
+  SUCCESS CRITERIA: At least one PowerShell process with encoded commands spawned by a remote management parent on a non-admin workstation — corroborate with network logs showing outbound connection within the same session.
+
+  LOOKBACK WINDOW: 30 days — covers most C2 dwell times while keeping query performance manageable.
+
+variants:
+  - model: gpt-4o
+    prompt: |
+      You are a threat hunter. Generate hunting hypotheses for the following TTP or behavior:
+
+      {PASTE TTP ID, TECHNIQUE NAME, OR THREAT ACTOR BEHAVIOR HERE}
+
+      Return ONLY this structure — no preamble, no prose:
+
+      TECHNIQUE: [T####.###] [Name]
+      HYPOTHESES: [numbered list, max 3, each formatted as "If [behavior], then [evidence] in [data source]"]
+      DATA SOURCES: [log sources and key fields, one per line]
+      KQL QUERY: [1 targeted KQL hunt query]
+      SUCCESS CRITERIA: [one sentence]
+      LOOKBACK: [time range and reason]
+    notes: GPT-4o adds prose before TECHNIQUE — the explicit "no preamble" suppresses it most of the time. Still occasionally wraps KQL in markdown fences; strip them before running.

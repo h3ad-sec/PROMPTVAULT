@@ -1,0 +1,117 @@
+id: incident-response-action-plan
+title: Incident Response Action Plan
+category: respond
+use_case: Generate a structured IR action plan with containment, eradication, and recovery steps for a given incident type
+tags: [incident-response, containment, eradication, recovery, playbook]
+mitre: []
+author: hrushikesh-badgujar
+contributed: 2026-05-28
+best_with: claude-3.5-sonnet
+limitations: Steps are general — adapt to your environment, tooling, and IR policy. Does not replace an approved IR playbook or legal/compliance sign-off on containment actions. Always loop in management before isolating production systems.
+
+prompt: |
+  You are an incident responder with experience handling enterprise security incidents.
+
+  Incident details:
+  {DESCRIBE THE INCIDENT: type, affected systems, initial indicators, timeline if known}
+
+  Generate a structured IR action plan. Return ONLY the following structure. Do not add any other text.
+
+  INCIDENT TYPE: [Ransomware / Credential Theft / Data Exfiltration / Insider Threat / Phishing / C2 Beaconing / Other]
+  SEVERITY: [P1-Critical / P2-High / P3-Medium / P4-Low]
+  CURRENT PHASE: [Detection / Containment / Eradication / Recovery / Post-Incident]
+
+  IMMEDIATE ACTIONS (first 30 minutes):
+  1. [Action — who does it, what tool, why]
+  2.
+  3.
+
+  EVIDENCE PRESERVATION (before containment changes state):
+  - [What to collect and where to store it]
+
+  CONTAINMENT STEPS:
+  1. [Specific action with rollback consideration]
+  2.
+  3.
+
+  ERADICATION STEPS:
+  1. [Specific removal or remediation action]
+  2.
+
+  RECOVERY STEPS:
+  1. [Validated restoration action]
+  2.
+
+  STAKEHOLDER NOTIFICATIONS:
+  - [Who to notify, when, and what to tell them — CISO, Legal, HR, PR, regulator]
+
+  IOC WATCHLIST: [Indicators to block in SIEM/EDR/firewall immediately — one per line]
+
+  DO NOT DO: [Common mistakes for this incident type that make the situation worse]
+
+example_output: |
+  INCIDENT TYPE: C2 Beaconing
+  SEVERITY: P2-High
+  CURRENT PHASE: Containment
+
+  IMMEDIATE ACTIONS (first 30 minutes):
+  1. Analyst: Pull full network flow for the beaconing host from the past 72h — identify all external IPs contacted and flag consistent-interval connections (jitter <5%)
+  2. SOC Lead: Open P2 incident ticket, assign IR lead, notify on-call CISO via Slack
+  3. Network: Block the known C2 IP/domain at the perimeter firewall — do NOT isolate the host yet to preserve beacon timing for forensics
+
+  EVIDENCE PRESERVATION (before containment changes state):
+  - Memory dump of the affected host (Volatility-compatible) before rebooting or isolating
+  - Full process tree snapshot from EDR at time of detection
+  - Raw PCAP of the last 4 hours of outbound traffic from the host
+  - Event logs (Security, System, PowerShell operational) exported to SIEM case
+
+  CONTAINMENT STEPS:
+  1. Isolate the host at the network switch level (VLAN quarantine) — preserve the machine state for forensics
+  2. Disable the user account associated with the compromised host in Active Directory
+  3. Rotate any credentials the user had access to — VPN, email, shared service accounts
+
+  ERADICATION STEPS:
+  1. Identify the malware dropper via EDR process tree and file hash — compare against VirusTotal
+  2. Remove persistence mechanisms: scheduled tasks, registry run keys, new services, startup folders
+  3. Scan all hosts with the same user or lateral movement path for matching IOCs
+
+  RECOVERY STEPS:
+  1. Reimage the affected host from a known-clean golden image — do not restore from backup taken after infection date
+  2. Re-enroll the host in EDR and confirm telemetry is flowing before returning to production
+
+  STAKEHOLDER NOTIFICATIONS:
+  - CISO: Immediate — severity, affected systems, containment status
+  - Legal: Within 2h if data exfiltration is suspected — preserve chain of custody
+  - IT Manager: Coordinate host isolation window to minimize business impact
+  - HR: Only if insider threat indicators are present
+
+  IOC WATCHLIST:
+  185.220.101.45 — known C2 IP
+  update-service[.]net — C2 domain
+  SHA256: a3f1b2c4... — dropper hash
+
+  DO NOT DO:
+  - Do not reboot the host before taking a memory dump — volatile C2 artifacts will be lost
+  - Do not block the C2 IP before collecting timing data — you lose the ability to track dwell time
+  - Do not notify the user until Legal has reviewed — premature disclosure can trigger evidence destruction in insider threat cases
+
+variants:
+  - model: gpt-4o
+    prompt: |
+      You are an incident responder. Generate a structured action plan for the following incident:
+
+      {DESCRIBE THE INCIDENT: type, affected systems, initial indicators, timeline if known}
+
+      Return ONLY this structure — no prose, no preamble:
+
+      INCIDENT TYPE: [type]
+      SEVERITY: [P1-P4]
+      IMMEDIATE ACTIONS: [numbered, max 3 — who, what, why]
+      EVIDENCE PRESERVATION: [bullet list]
+      CONTAINMENT: [numbered steps]
+      ERADICATION: [numbered steps]
+      RECOVERY: [numbered steps]
+      NOTIFICATIONS: [who, when]
+      IOC WATCHLIST: [one per line]
+      DO NOT DO: [max 3 common mistakes for this incident type]
+    notes: GPT-4o handles this structure well. For complex incidents, it may truncate the IOC list — follow up with "list all IOCs you identified" if the incident description is IOC-heavy.

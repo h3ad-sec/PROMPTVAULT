@@ -54,6 +54,13 @@
     body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; min-height: 100vh; transition: background 0.25s, color 0.25s; }
     a { color: var(--accent); text-decoration: none; }
     a:hover { opacity: 0.8; }
+    a:focus-visible,
+    button:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 2px solid var(--primary, #00d4ff);
+      outline-offset: 2px;
+      border-radius: 3px;
+    }
 
     #matrix { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: 0.2; }
     body.light #matrix { opacity: 0.1; }
@@ -109,104 +116,136 @@
     .arsenal-badge { font-family: var(--mono); font-size: 10px; color: var(--accent); background: rgba(0,255,159,0.07); border: 1px solid rgba(0,255,159,0.25); padding: 4px 12px; border-radius: 3px; letter-spacing: 0.1em; }
     body.light .arsenal-badge { background: rgba(0,77,184,0.07); border-color: rgba(0,77,184,0.28); }
 
-    /* ── Filter bar ── */
-    .filter-bar { position: sticky; top: calc(var(--nav-h) + var(--topbar-h)); z-index: 40; background: var(--panel); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; align-items: center; gap: 6px; height: var(--filterbar-h); flex-wrap: nowrap; }
-    .filter-pill { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; padding: 4px 14px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.14s; white-space: nowrap; flex-shrink: 0; }
-    .filter-pill:hover { color: var(--text); border-color: var(--muted); }
-    .filter-pill.active { color: var(--accent); border-color: var(--accent); background: rgba(0,255,159,0.08); }
-    .filter-pill.pill-triage.active  { color: var(--cat-triage);  border-color: var(--cat-triage);  background: rgba(245,158,11,0.08); }
-    .filter-pill.pill-detect.active  { color: var(--cat-detect);  border-color: var(--cat-detect);  background: rgba(77,148,255,0.08); }
-    .filter-pill.pill-intel.active   { color: var(--cat-intel);   border-color: var(--cat-intel);   background: rgba(168,85,247,0.08); }
-    .filter-pill.pill-hunt.active    { color: var(--cat-hunt);    border-color: var(--cat-hunt);    background: rgba(0,255,159,0.08); }
-    .filter-pill.pill-respond.active { color: var(--cat-respond); border-color: var(--cat-respond); background: rgba(255,107,53,0.08); }
-    .filter-pill.pill-analyze.active { color: var(--cat-analyze); border-color: var(--cat-analyze); background: rgba(6,182,212,0.08); }
-    .filter-spacer { flex: 1; }
-    .filter-search { font-family: var(--mono); font-size: 11px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 5px 12px; outline: none; width: 220px; transition: border-color 0.15s; letter-spacing: 0.03em; }
-    .filter-search::placeholder { color: var(--muted); }
-    .filter-search:focus { border-color: var(--accent); }
+    /* ── Vault layout ── */
+    .vault-layout { display: flex; flex: 1; padding-top: var(--topbar-h); }
+
+    /* ── Sidebar ── */
+    .vault-sidebar { width: 200px; flex-shrink: 0; position: sticky; top: calc(var(--nav-h) + var(--topbar-h)); height: calc(100vh - var(--nav-h) - var(--topbar-h)); overflow-y: auto; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px 0 16px; scrollbar-width: none; }
+    .vault-sidebar::-webkit-scrollbar { display: none; }
+    .vsb-label { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 0.15em; padding: 0 16px 10px; }
+    .vsb-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 8px; }
+    .vsb-nav .filter-pill { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 10px; background: transparent; color: var(--muted); border: 1px solid transparent; border-radius: 4px; cursor: pointer; transition: all 0.14s; text-align: left; white-space: nowrap; }
+    .vsb-nav .filter-pill:hover { color: var(--text-dim); background: rgba(255,255,255,0.03); }
+    .vsb-nav .filter-pill.active { color: var(--text); background: rgba(255,255,255,0.05); border-color: var(--border); }
+    .vsb-nav .filter-pill.pill-triage.active  { color: var(--cat-triage);  border-color: rgba(245,158,11,0.3);  background: rgba(245,158,11,0.06); }
+    .vsb-nav .filter-pill.pill-detect.active  { color: var(--cat-detect);  border-color: rgba(77,148,255,0.3);  background: rgba(77,148,255,0.06); }
+    .vsb-nav .filter-pill.pill-intel.active   { color: var(--cat-intel);   border-color: rgba(168,85,247,0.3);  background: rgba(168,85,247,0.06); }
+    .vsb-nav .filter-pill.pill-hunt.active    { color: var(--cat-hunt);    border-color: rgba(0,255,159,0.3);   background: rgba(0,255,159,0.06); }
+    .vsb-nav .filter-pill.pill-respond.active { color: var(--cat-respond); border-color: rgba(255,107,53,0.3);  background: rgba(255,107,53,0.06); }
+    .vsb-nav .filter-pill.pill-analyze.active { color: var(--cat-analyze); border-color: rgba(6,182,212,0.3);   background: rgba(6,182,212,0.06); }
+    .fp-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .fp-name { flex: 1; }
+    .vsb-divider { height: 1px; background: var(--border-dim); margin: 12px 16px; }
+    .vsb-contribute { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 0.08em; padding: 7px 16px; transition: color 0.14s; }
+    .vsb-contribute:hover { color: var(--accent); opacity: 1; }
+
+    /* ── Vault content ── */
+    .vault-content { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+    /* ── Mobile filter (hidden on desktop) ── */
+    .mobile-filter { display: none; }
+
+    /* ── Vault topbar ── */
+    .vault-topbar { padding: 12px 20px; border-bottom: 1px solid var(--border); background: var(--panel); display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+    .filter-search { font-family: var(--mono); font-size: 11px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 3px; padding: 7px 14px; outline: none; flex: 1; transition: border-color 0.15s, box-shadow 0.15s; letter-spacing: 0.03em; }
+    .filter-search::placeholder { color: var(--muted-dim); }
+    .filter-search:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,255,159,0.1); }
+    body.light .filter-search:focus { box-shadow: 0 0 0 2px rgba(0,77,184,0.1); }
 
     /* ── Main content ── */
-    .main-content { flex: 1; padding: calc(var(--topbar-h) + var(--filterbar-h) + 20px) 20px 40px; }
-    .query-count { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 14px; }
+    .main-content { flex: 1; padding-bottom: 48px; }
+    .query-count { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; padding: 12px 20px 0; }
     .query-count span { color: var(--accent); }
 
-    /* ── Card grid ── */
-    .query-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-    @media (min-width: 768px)  { .query-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (min-width: 1200px) { .query-grid { grid-template-columns: repeat(3, 1fr); } }
+    /* ── Card list ── */
+    .query-grid { display: flex; flex-direction: column; }
 
-    /* ── Prompt card ── */
-    .query-card { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px 12px; position: relative; transition: border-color 0.18s; display: flex; flex-direction: column; gap: 6px; min-width: 0; overflow: hidden; }
-    .query-card:hover { border-color: var(--muted-dim); }
-    .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-    .card-title { font-family: var(--mono); font-size: 13px; color: var(--accent); line-height: 1.35; flex: 1; }
-    .cat-badge { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; padding: 2px 8px; border-radius: 3px; white-space: nowrap; flex-shrink: 0; font-weight: bold; border: 1px solid; }
-    .card-desc { font-size: 12px; color: var(--text-dim); line-height: 1.55; flex: 1; }
-    .card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
-    .best-with-badge { font-family: var(--mono); font-size: 9px; color: var(--muted); background: var(--bg); border: 1px solid var(--border-dim); border-radius: 3px; padding: 2px 7px; white-space: nowrap; flex-shrink: 0; }
+    /* ── Prompt card (list row) ── */
+    .query-card { background: transparent; border: none; border-bottom: 1px solid var(--border-dim); border-left: 3px solid transparent; padding: 0; position: relative; display: flex; flex-direction: column; min-width: 0; transition: background 0.15s, border-left-color 0.15s; }
+    .query-card:hover { background: rgba(255,255,255,0.02); }
+    .query-card[data-cat="triage"]  { border-left-color: var(--cat-triage); }
+    .query-card[data-cat="detect"]  { border-left-color: var(--cat-detect); }
+    .query-card[data-cat="intel"]   { border-left-color: var(--cat-intel); }
+    .query-card[data-cat="hunt"]    { border-left-color: var(--cat-hunt); }
+    .query-card[data-cat="respond"] { border-left-color: var(--cat-respond); }
+    .query-card[data-cat="analyze"] { border-left-color: var(--cat-analyze); }
+    .card-inner { padding: 14px 20px 10px; display: flex; flex-direction: column; gap: 6px; }
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .card-title { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.35; flex: 1; }
+    .cat-badge { font-family: var(--mono); font-size: 8px; letter-spacing: 0.12em; padding: 2px 7px; border-radius: 2px; white-space: nowrap; flex-shrink: 0; font-weight: bold; border: 1px solid; }
+    .card-desc { font-size: 12px; color: var(--text-dim); line-height: 1.55; }
+    .card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .best-with-badge { font-family: var(--mono); font-size: 9px; color: var(--muted); background: var(--bg); border: 1px solid var(--border-dim); border-radius: 2px; padding: 2px 7px; white-space: nowrap; flex-shrink: 0; }
     .tag-row { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
     .tag-pill { font-family: var(--mono); font-size: 8px; color: var(--muted-dim); background: transparent; border: 1px solid var(--border-dim); border-radius: 20px; padding: 1px 7px; letter-spacing: 0.04em; }
-    .card-footer { display: flex; justify-content: flex-end; margin-top: 4px; }
-    .btn-view { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 3px; padding: 3px 10px; cursor: pointer; transition: all 0.14s; white-space: nowrap; }
-    .btn-view:hover { color: var(--accent); border-color: var(--accent); background: rgba(0,255,159,0.05); }
+    .card-footer { padding: 8px 20px 12px; display: flex; justify-content: flex-end; }
+    .btn-view { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; background: transparent; color: var(--accent); border: 1px solid rgba(0,255,159,0.25); border-radius: 2px; padding: 4px 13px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .btn-view:hover { background: rgba(0,255,159,0.07); border-color: var(--accent); }
+    body.light .btn-view { border-color: rgba(0,77,184,0.3); }
+    body.light .btn-view:hover { background: rgba(0,77,184,0.07); }
 
     /* ── Expanded section ── */
-    .query-expanded { display: none; margin-top: 6px; border-top: 1px solid var(--border); padding-top: 10px; }
+    .query-expanded { display: none; background: var(--panel-alt); border-top: 1px solid var(--border-dim); padding: 16px 20px; }
     .query-expanded.open { display: block; }
 
     /* ── Model tabs ── */
-    .model-tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
-    .model-tab { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; padding: 3px 10px; border-radius: 3px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.14s; }
-    .model-tab:hover { color: var(--text); border-color: var(--muted); }
-    .model-tab.active { color: var(--accent); border-color: var(--accent); background: rgba(0,255,159,0.08); }
-    body.light .model-tab.active { background: rgba(0,77,184,0.08); border-color: var(--accent); }
+    .model-tabs { display: flex; gap: 0; margin-bottom: 14px; border-bottom: 1px solid var(--border-dim); }
+    .model-tab { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; padding: 5px 14px; border: none; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); cursor: pointer; transition: color 0.14s, border-color 0.14s; margin-bottom: -1px; }
+    .model-tab:hover { color: var(--text-dim); }
+    .model-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    body.light .model-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
     /* ── Prompt block ── */
-    .prompt-block { background: var(--bg); border: 1px solid var(--border-dim); border-radius: 4px; padding: 12px 14px; overflow-x: auto; max-width: 100%; scrollbar-width: thin; scrollbar-color: var(--muted-dim) transparent; }
+    .prompt-block { background: #030810; border: 1px solid var(--border-dim); border-radius: 4px; padding: 14px 16px; overflow-x: auto; max-width: 100%; scrollbar-width: thin; scrollbar-color: var(--muted-dim) transparent; }
     .prompt-block::-webkit-scrollbar { height: 4px; }
     .prompt-block::-webkit-scrollbar-thumb { background: var(--muted-dim); border-radius: 2px; }
-    .prompt-block pre { font-family: var(--mono); font-size: 11px; color: var(--text-dim); line-height: 1.65; white-space: pre-wrap; word-break: break-word; margin: 0; }
-    .placeholder { color: var(--accent); opacity: 0.75; font-style: italic; }
+    .prompt-block pre { font-family: var(--mono); font-size: 11.5px; color: #96b4cc; line-height: 1.75; white-space: pre-wrap; word-break: break-word; margin: 0; }
+    body.light .prompt-block { background: #f1f5fb; border-color: var(--border); }
+    body.light .prompt-block pre { color: #1e3a54; }
+    .placeholder { color: var(--accent); opacity: 1; font-style: normal; font-weight: bold; }
+    body.light .placeholder { color: var(--accent); }
 
     /* ── Variant notes ── */
-    .variant-notes { font-family: var(--mono); font-size: 10px; color: var(--cat-triage); background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.2); border-radius: 3px; padding: 6px 10px; margin-top: 8px; line-height: 1.5; letter-spacing: 0.02em; }
+    .variant-notes { font-family: var(--mono); font-size: 10px; color: var(--cat-triage); background: rgba(245,158,11,0.05); border-left: 2px solid rgba(245,158,11,0.4); padding: 8px 12px; margin-top: 12px; line-height: 1.6; letter-spacing: 0.02em; }
 
     /* ── Limitations ── */
-    .limitations-note { font-family: var(--mono); font-size: 10px; color: var(--muted); background: var(--panel-alt); border-left: 2px solid var(--muted-dim); border-radius: 0 3px 3px 0; padding: 6px 10px; margin-top: 8px; line-height: 1.5; letter-spacing: 0.02em; }
+    .limitations-note { font-family: var(--mono); font-size: 10px; color: var(--muted); background: transparent; border-left: 2px solid var(--border); padding: 8px 12px; margin-top: 12px; line-height: 1.6; letter-spacing: 0.02em; }
 
     /* ── Example output ── */
-    .example-details { margin-top: 8px; }
-    .example-summary { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 0.08em; cursor: pointer; padding: 4px 0; user-select: none; }
-    .example-summary:hover { color: var(--text); }
-    .example-block { background: var(--bg); border: 1px solid var(--border-dim); border-radius: 4px; padding: 10px 14px; margin-top: 6px; overflow-x: auto; }
-    .example-block pre { font-family: var(--mono); font-size: 10px; color: var(--muted); line-height: 1.6; white-space: pre-wrap; word-break: break-word; margin: 0; }
+    .example-details { margin-top: 14px; }
+    .example-summary { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 0.1em; cursor: pointer; padding: 5px 0; user-select: none; list-style: none; }
+    .example-summary:hover { color: var(--text-dim); }
+    .example-block { background: #030810; border: 1px solid var(--border-dim); border-radius: 4px; padding: 12px 16px; margin-top: 8px; overflow-x: auto; }
+    .example-block pre { font-family: var(--mono); font-size: 10.5px; color: #62809c; line-height: 1.65; white-space: pre-wrap; word-break: break-word; margin: 0; }
+    body.light .example-block { background: #f1f5fb; border-color: var(--border); }
+    body.light .example-block pre { color: var(--muted); }
 
     /* ── MITRE tags ── */
-    .mitre-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
-    .mitre-tag { font-family: var(--mono); font-size: 9px; color: #4d94ff; background: rgba(77,148,255,0.1); border: 1px solid rgba(77,148,255,0.25); border-radius: 3px; padding: 2px 7px; letter-spacing: 0.04em; }
+    .mitre-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 14px; }
+    .mitre-tag { font-family: var(--mono); font-size: 9px; color: var(--cat-detect); background: rgba(77,148,255,0.08); border: 1px solid rgba(77,148,255,0.2); border-radius: 2px; padding: 2px 8px; letter-spacing: 0.05em; }
 
     /* ── Expanded actions ── */
-    .expanded-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
-    .btn-hide { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 3px; padding: 3px 10px; cursor: pointer; transition: all 0.14s; }
-    .btn-hide:hover { color: var(--text); border-color: var(--muted); }
-    .btn-copy { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; background: rgba(0,255,159,0.07); color: var(--accent); border: 1px solid rgba(0,255,159,0.22); border-radius: 3px; padding: 3px 12px; cursor: pointer; transition: all 0.14s; }
-    .btn-copy:hover { background: rgba(0,255,159,0.14); }
-    body.light .btn-copy { background: rgba(0,77,184,0.07); border-color: rgba(0,77,184,0.25); }
+    .expanded-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-dim); }
+    .btn-hide { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; background: transparent; color: var(--muted); border: 1px solid var(--border-dim); border-radius: 2px; padding: 4px 12px; cursor: pointer; transition: all 0.14s; }
+    .btn-hide:hover { color: var(--text-dim); border-color: var(--muted-dim); }
+    .btn-copy { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; font-weight: 700; background: var(--accent); color: #041208; border: none; border-radius: 2px; padding: 5px 18px; cursor: pointer; transition: opacity 0.15s, box-shadow 0.15s; }
+    .btn-copy:hover { opacity: 0.88; box-shadow: 0 0 16px rgba(0,255,159,.2); }
+    body.light .btn-copy { color: #fff; }
 
     /* ── State panels ── */
-    .state-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 20px; gap: 12px; }
+    .state-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 80px 20px; gap: 12px; }
     .state-title { font-family: var(--mono); font-size: 16px; color: var(--text); letter-spacing: 0.1em; }
     .state-desc { font-size: 12px; color: var(--muted); max-width: 320px; line-height: 1.6; }
-    .state-loading-text { font-family: var(--mono); font-size: 12px; color: var(--muted); letter-spacing: 0.1em; animation: blink 1.1s step-end infinite; }
+    .state-loading-text { font-family: var(--mono); font-size: 12px; color: var(--muted); letter-spacing: 0.12em; animation: blink 1.1s step-end infinite; }
     @keyframes blink { 50% { opacity: 0.3; } }
-    .btn-retry { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; background: transparent; color: var(--accent); border: 1px solid var(--accent); border-radius: 3px; padding: 6px 18px; cursor: pointer; transition: all 0.14s; margin-top: 4px; }
+    .btn-retry { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; background: transparent; color: var(--accent); border: 1px solid rgba(0,255,159,0.3); border-radius: 2px; padding: 7px 20px; cursor: pointer; transition: all 0.14s; margin-top: 4px; }
     .btn-retry:hover { background: rgba(0,255,159,0.08); }
 
     /* ── Footer ── */
-    .tracer-footer { border-top: 1px solid var(--border); padding: 14px 20px; text-align: center; font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; }
-    .footer-link { color: var(--muted); text-decoration: none; }
+    .tracer-footer { border-top: 1px solid var(--border-dim); padding: 16px 24px; text-align: center; font-family: var(--mono); font-size: 9px; color: var(--muted-dim); letter-spacing: 0.1em; }
+    .footer-link { color: var(--muted); text-decoration: none; transition: color 0.15s; }
     .footer-link:hover { color: var(--accent); opacity: 1; }
 
     /* ── Scroll sentinel + nav pill ── */
@@ -218,7 +257,7 @@
     .xv-pill-tagline { font-family: var(--mono); font-size: 8px; color: var(--muted); letter-spacing: 1.5px; }
     @media (max-width: 1000px) {
       .tracer-hero { display: none; }
-      .main-content { padding-top: calc(var(--nav-h) + 20px); }
+      .vault-layout { padding-top: 0; }
       .xv-nav-pill { opacity: 1; transform: none; pointer-events: auto; transition: none; }
     }
 
@@ -227,13 +266,27 @@
       .nav-links { display: none; }
       .hamburger { display: flex; }
     }
+    @media (max-width: 900px) {
+      .vault-sidebar { display: none; }
+      .mobile-filter { display: flex; overflow-x: auto; scrollbar-width: none; background: var(--panel); border-bottom: 1px solid var(--border); padding: 0 14px; height: 44px; align-items: stretch; gap: 0; flex-shrink: 0; }
+      .mobile-filter::-webkit-scrollbar { display: none; }
+      .mobile-filter .filter-pill { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; padding: 0 14px; height: 100%; background: transparent; color: var(--muted); border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: color 0.15s, border-color 0.15s; white-space: nowrap; flex-shrink: 0; margin-bottom: -1px; }
+      .mobile-filter .filter-pill:hover { color: var(--text); }
+      .mobile-filter .filter-pill.active { color: var(--accent); border-bottom-color: var(--accent); }
+      .mobile-filter .filter-pill.pill-triage.active  { color: var(--cat-triage);  border-bottom-color: var(--cat-triage); }
+      .mobile-filter .filter-pill.pill-detect.active  { color: var(--cat-detect);  border-bottom-color: var(--cat-detect); }
+      .mobile-filter .filter-pill.pill-intel.active   { color: var(--cat-intel);   border-bottom-color: var(--cat-intel); }
+      .mobile-filter .filter-pill.pill-hunt.active    { color: var(--cat-hunt);    border-bottom-color: var(--cat-hunt); }
+      .mobile-filter .filter-pill.pill-respond.active { color: var(--cat-respond); border-bottom-color: var(--cat-respond); }
+      .mobile-filter .filter-pill.pill-analyze.active { color: var(--cat-analyze); border-bottom-color: var(--cat-analyze); }
+    }
     @media (max-width: 768px) {
       .tracer-hero { height: auto; padding: 10px 14px; flex-wrap: wrap; gap: 6px; }
       .hero-title { font-size: 16px; }
-      .filter-bar { height: auto; flex-wrap: wrap; padding: 8px 14px; gap: 6px; }
-      .filter-spacer { display: none; }
-      .filter-search { width: 100%; order: 99; }
-      .main-content { padding: 14px 14px 32px; }
+      .vault-topbar { padding: 10px 14px; }
+      .card-inner { padding: 12px 14px 8px; }
+      .card-footer { padding: 7px 14px 10px; }
+      .query-expanded { padding: 13px 14px; }
     }
     @media (max-width: 480px) {
       :root { --topbar-h: auto; }
@@ -241,13 +294,11 @@
       .hero-title { font-size: 15px; }
       .hero-tagline { font-size: 8px; }
       .arsenal-badge { display: none; }
-      .filter-bar { position: static; height: auto; flex-wrap: wrap; padding: 8px 12px; gap: 6px; top: var(--nav-h); }
-      .filter-pill { min-height: 40px; padding: 0 14px; font-size: 11px; display: flex; align-items: center; }
-      .filter-spacer { display: none; }
-      .filter-search { width: 100%; order: 99; min-height: 40px; font-size: 12px; padding: 8px 12px; }
-      .main-content { padding: 12px 12px 28px; }
-      .query-card { padding: 12px 12px 10px; }
-      .btn-view, .btn-hide, .btn-copy { min-height: 40px; padding: 0 14px; font-size: 10px; display: inline-flex; align-items: center; justify-content: center; }
+      .vault-topbar { padding: 8px 12px; }
+      .card-inner { padding: 11px 12px 7px; }
+      .card-footer { padding: 6px 12px 9px; }
+      .query-expanded { padding: 12px; }
+      .btn-view, .btn-hide, .btn-copy { min-height: 36px; padding: 0 12px; font-size: 10px; display: inline-flex; align-items: center; justify-content: center; }
     }
   </style>
 </head>
@@ -272,7 +323,6 @@
       <div class="nav-divider"></div>
       <a href="https://h3ad-sec.github.io" target="_blank" rel="noopener">HOME</a>
       <a href="https://h3ad-sec.github.io/H3AD/" target="_blank" rel="noopener">H3AD</a>
-      <a href="https://h3ad-sec.github.io/H3AD/" target="_blank" rel="noopener">H3AD</a>
       <div class="nav-divider"></div>
       <div class="nav-item">
         <a href="https://h3ad-sec.github.io/H3AD-X/" target="_blank" rel="noopener">H3AD-X</a>
@@ -286,6 +336,11 @@
         <a href="https://h3ad-sec.github.io/H3AD-AI/" target="_blank" rel="noopener">H3AD-AI</a>
         <div class="nav-dropdown"><div class="nav-dropdown-inner">
           <a href="https://h3ad-sec.github.io/PROMPTVAULT/" class="nav-current">PROMPTVAULT</a>
+          <a href="https://h3ad-sec.github.io/INSIGHT-AI/" target="_blank" rel="noopener">INSIGHT-AI</a>
+          <a href="https://h3ad-sec.github.io/QUERYCRAFT-AI/" target="_blank" rel="noopener">QUERYCRAFT-AI</a>
+          <a href="https://h3ad-sec.github.io/FPLENS-AI/" target="_blank" rel="noopener">FPLENS-AI</a>
+          <a href="https://h3ad-sec.github.io/ATTMAP-AI/" target="_blank" rel="noopener">ATTMAP-AI</a>
+          <a href="https://h3ad-sec.github.io/CHRONO-AI/" target="_blank" rel="noopener">CHRONO-AI</a>
         </div></div>
       </div>
       <div class="nav-item">
@@ -306,6 +361,7 @@
         <a href="https://h3ad-sec.github.io/H3AD-OPS/" target="_blank" rel="noopener">H3AD-OPS</a>
         <div class="nav-dropdown"><div class="nav-dropdown-inner">
           <a href="https://h3ad-sec.github.io/QUICKTRACE/" target="_blank" rel="noopener">QUICKTRACE</a>
+          <a href="https://h3ad-sec.github.io/PHISHOPS/" target="_blank" rel="noopener">PHISHOPS</a>
         </div></div>
       </div>
       <a href="https://h3ad-sec.github.io/H3AD-DF/" target="_blank" rel="noopener">H3AD-DF</a>
@@ -324,13 +380,17 @@
   <div class="nav-drawer" id="navDrawer">
     <a href="https://h3ad-sec.github.io" target="_blank" rel="noopener" onclick="closeDrawer()">HOME ↗</a>
     <a href="https://h3ad-sec.github.io/H3AD/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD ↗</a>
-    <a href="https://h3ad-sec.github.io/H3AD/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD ↗</a>
     <a href="https://h3ad-sec.github.io/H3AD-X/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD-X ↗</a>
     <a href="https://h3ad-sec.github.io/X-VERDIKT/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ X-VERDIKT ↗</a>
     <a href="https://h3ad-sec.github.io/PARSE-X/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ PARSE-X ↗</a>
     <a href="https://h3ad-sec.github.io/DNSCOPE/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ DNSCOPE ↗</a>
     <a href="https://h3ad-sec.github.io/H3AD-AI/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD-AI ↗</a>
     <a href="https://h3ad-sec.github.io/PROMPTVAULT/" onclick="closeDrawer()" class="drawer-sub nav-current">↳ PROMPTVAULT</a>
+    <a href="https://h3ad-sec.github.io/INSIGHT-AI/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ INSIGHT-AI ↗</a>
+    <a href="https://h3ad-sec.github.io/QUERYCRAFT-AI/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ QUERYCRAFT-AI ↗</a>
+    <a href="https://h3ad-sec.github.io/FPLENS-AI/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ FPLENS-AI ↗</a>
+    <a href="https://h3ad-sec.github.io/ATTMAP-AI/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ ATTMAP-AI ↗</a>
+    <a href="https://h3ad-sec.github.io/CHRONO-AI/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ CHRONO-AI ↗</a>
     <a href="https://h3ad-sec.github.io/H3AD-DETECT/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD-DETECT ↗</a>
     <a href="https://h3ad-sec.github.io/TRACERULES/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ TRACERULES ↗</a>
     <a href="https://h3ad-sec.github.io/H3AD-HUNT/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD-HUNT ↗</a>
@@ -339,34 +399,97 @@
     <a href="https://h3ad-sec.github.io/TRACEPULSE/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ TRACEPULSE ↗</a>
     <a href="https://h3ad-sec.github.io/H3AD-OPS/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD-OPS ↗</a>
     <a href="https://h3ad-sec.github.io/QUICKTRACE/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ QUICKTRACE ↗</a>
+    <a href="https://h3ad-sec.github.io/PHISHOPS/" target="_blank" rel="noopener" onclick="closeDrawer()" class="drawer-sub">↳ PHISHOPS ↗</a>
     <a href="https://h3ad-sec.github.io/H3AD-DF/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD-DF ↗</a>
     <a href="https://h3ad-sec.github.io/H3AD-IR/" target="_blank" rel="noopener" onclick="closeDrawer()">H3AD-IR ↗</a>
     <a href="mailto:h3adsec@gmail.com" onclick="closeDrawer()">CONTACT</a>
   </div>
 
-  <div class="page-wrap">
-
-
-    <!-- Filter bar -->
-    <div class="filter-bar">
-      <button class="filter-pill active" data-filter="all" onclick="setFilter('all')">ALL</button>
-      <button class="filter-pill pill-triage"  data-filter="triage"  onclick="setFilter('triage')">TRIAGE</button>
-      <button class="filter-pill pill-detect"  data-filter="detect"  onclick="setFilter('detect')">DETECT</button>
-      <button class="filter-pill pill-intel"   data-filter="intel"   onclick="setFilter('intel')">INTEL</button>
-      <button class="filter-pill pill-hunt"    data-filter="hunt"    onclick="setFilter('hunt')">HUNT</button>
-      <button class="filter-pill pill-respond" data-filter="respond" onclick="setFilter('respond')">RESPOND</button>
-      <button class="filter-pill pill-analyze" data-filter="analyze" onclick="setFilter('analyze')">ANALYZE</button>
-      <div class="filter-spacer"></div>
-      <input class="filter-search" id="searchInput" type="text" placeholder="search prompts..." oninput="onSearch()" autocomplete="off" spellcheck="false" />
+  <!-- Hero strip -->
+  <div class="tracer-hero">
+    <div class="hero-left">
+      <div class="hero-breadcrumb">
+        <a href="https://h3ad-sec.github.io" target="_blank" rel="noopener">H3AD-SEC</a>
+        <span>›</span>H3AD-AI<span>›</span>PROMPTVAULT
+      </div>
+      <div class="hero-title-row">
+        <div class="hero-title">PROMPTVAULT</div>
+        <div class="hero-tagline">AI PROMPT ARSENAL</div>
+      </div>
     </div>
+    <div class="hero-right">
+      <div class="arsenal-badge">COMMUNITY VAULT</div>
+    </div>
+  </div>
 
-    <!-- Main content -->
-    <div class="main-content">
-      <div id="queryCount" class="query-count" style="display:none"></div>
-      <div id="queryGrid" class="query-grid">
-        <div class="state-panel" id="loadingState" style="grid-column:1/-1">
-          <div class="state-loading-text">LOADING VAULT...</div>
+  <div class="page-wrap">
+    <div class="vault-layout">
+
+      <!-- Sidebar -->
+      <aside class="vault-sidebar">
+        <div class="vsb-label">FILTER BY</div>
+        <nav class="vsb-nav">
+          <button class="filter-pill active" data-filter="all" onclick="setFilter('all')">
+            <span class="fp-name">ALL</span>
+          </button>
+          <button class="filter-pill pill-triage" data-filter="triage" onclick="setFilter('triage')">
+            <span class="fp-dot" style="background:var(--cat-triage)"></span>
+            <span class="fp-name">TRIAGE</span>
+          </button>
+          <button class="filter-pill pill-detect" data-filter="detect" onclick="setFilter('detect')">
+            <span class="fp-dot" style="background:var(--cat-detect)"></span>
+            <span class="fp-name">DETECT</span>
+          </button>
+          <button class="filter-pill pill-intel" data-filter="intel" onclick="setFilter('intel')">
+            <span class="fp-dot" style="background:var(--cat-intel)"></span>
+            <span class="fp-name">INTEL</span>
+          </button>
+          <button class="filter-pill pill-hunt" data-filter="hunt" onclick="setFilter('hunt')">
+            <span class="fp-dot" style="background:var(--cat-hunt)"></span>
+            <span class="fp-name">HUNT</span>
+          </button>
+          <button class="filter-pill pill-respond" data-filter="respond" onclick="setFilter('respond')">
+            <span class="fp-dot" style="background:var(--cat-respond)"></span>
+            <span class="fp-name">RESPOND</span>
+          </button>
+          <button class="filter-pill pill-analyze" data-filter="analyze" onclick="setFilter('analyze')">
+            <span class="fp-dot" style="background:var(--cat-analyze)"></span>
+            <span class="fp-name">ANALYZE</span>
+          </button>
+        </nav>
+        <div class="vsb-divider"></div>
+        <a href="https://github.com/h3ad-sec/PROMPTVAULT" target="_blank" rel="noopener" class="vsb-contribute">+ CONTRIBUTE</a>
+      </aside>
+
+      <!-- Content area -->
+      <div class="vault-content">
+
+        <!-- Mobile filter strip (hidden on desktop) -->
+        <div class="mobile-filter">
+          <button class="filter-pill active" data-filter="all" onclick="setFilter('all')">ALL</button>
+          <button class="filter-pill pill-triage"  data-filter="triage"  onclick="setFilter('triage')">TRIAGE</button>
+          <button class="filter-pill pill-detect"  data-filter="detect"  onclick="setFilter('detect')">DETECT</button>
+          <button class="filter-pill pill-intel"   data-filter="intel"   onclick="setFilter('intel')">INTEL</button>
+          <button class="filter-pill pill-hunt"    data-filter="hunt"    onclick="setFilter('hunt')">HUNT</button>
+          <button class="filter-pill pill-respond" data-filter="respond" onclick="setFilter('respond')">RESPOND</button>
+          <button class="filter-pill pill-analyze" data-filter="analyze" onclick="setFilter('analyze')">ANALYZE</button>
         </div>
+
+        <!-- Search bar -->
+        <div class="vault-topbar">
+          <input class="filter-search" id="searchInput" type="text" placeholder="Search prompts, tags, techniques..." oninput="onSearch()" autocomplete="off" spellcheck="false" />
+        </div>
+
+        <!-- Prompt list -->
+        <div class="main-content">
+          <div id="queryCount" class="query-count" style="display:none"></div>
+          <div id="queryGrid" class="query-grid">
+            <div class="state-panel" id="loadingState">
+              <div class="state-loading-text">LOADING VAULT...</div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -527,7 +650,8 @@
 
       var catStyle = 'color:' + color + ';background:' + color + '18;border-color:' + color + '44';
 
-      return '<div class="query-card" id="card-' + idx + '">'
+      return '<div class="query-card" id="card-' + idx + '" data-cat="' + cat + '">'
+        + '<div class="card-inner">'
         + '<div class="card-top">'
         + '<div class="card-title">' + title + '</div>'
         + '<span class="cat-badge" style="' + catStyle + '">' + cat.toUpperCase() + '</span>'
@@ -537,8 +661,9 @@
         + (bestWith ? '<span class="best-with-badge">best: ' + bestWith + '</span>' : '')
         + '<div class="tag-row">' + tags + '</div>'
         + '</div>'
+        + '</div>'
         + '<div class="card-footer">'
-        + '<button class="btn-view" onclick="toggleView(' + idx + ')">&#x25B6; VIEW PROMPT</button>'
+        + '<button class="btn-view" onclick="toggleView(' + idx + ')">VIEW PROMPT &#x2192;</button>'
         + '</div>'
         + '<div class="query-expanded" id="expanded-' + idx + '">'
         + (hasVariants ? '<div class="model-tabs" id="tabs-' + idx + '">' + tabs + '</div>' : '')
@@ -547,8 +672,8 @@
         + exampleHtml
         + mitreHtml
         + '<div class="expanded-actions">'
-        + '<button class="btn-hide" onclick="toggleView(' + idx + ')">&#x25B2; HIDE</button>'
-        + '<button class="btn-copy" id="copy-' + idx + '" onclick="copyPrompt(' + idx + ')">COPY PROMPT</button>'
+        + '<button class="btn-hide" onclick="toggleView(' + idx + ')">COLLAPSE</button>'
+        + '<button class="btn-copy" id="copy-' + idx + '" onclick="copyPrompt(' + idx + ')">COPY</button>'
         + '</div>'
         + '</div>'
         + '</div>';
@@ -646,7 +771,7 @@
         var btn = document.getElementById('copy-' + idx);
         if (btn) {
           btn.textContent = 'COPIED ✓';
-          setTimeout(function () { btn.textContent = 'COPY PROMPT'; }, 1800);
+          setTimeout(function () { btn.textContent = 'COPY'; }, 1800);
         }
       }).catch(function () {
         var range = document.createRange();

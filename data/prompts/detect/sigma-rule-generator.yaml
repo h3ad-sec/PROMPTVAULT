@@ -7,7 +7,7 @@ mitre: [T1059, T1078, T1566]
 author: hrushikesh-badgujar
 contributed: 2026-05-19
 best_with: claude-3.5-sonnet
-limitations: Hallusinates field names for uncommon log sources — always validate detection fields against your SIEM schema before deployment
+limitations: Hallucinates field names for uncommon log sources — always validate detection fields against your SIEM schema before deployment
 
 prompt: |
   You are a detection engineer with deep expertise in Sigma rule authoring.
