@@ -6,10 +6,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PROMPTVAULT - AI Prompt Arsenal // H3AD-SEC</title>
   <meta name="description" content="PROMPTVAULT by H3AD-SEC — A community-driven library of AI prompts for SOC analysts, detection engineers, and threat hunters." />
-  <link rel="icon" href="https://h3ad-sec.github.io/fevicon.png?v=2026" />
+  <link rel="canonical" href="https://h3ad-sec.github.io/PROMPTVAULT/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="H3AD-SEC" />
+  <meta property="og:url" content="https://h3ad-sec.github.io/PROMPTVAULT/" />
+  <meta property="og:title" content="PROMPTVAULT - AI Prompt Arsenal // H3AD-SEC" />
+  <meta property="og:description" content="PROMPTVAULT by H3AD-SEC — A community-driven library of AI prompts for SOC analysts, detection engineers, and threat hunters." />
+  <meta property="og:image" content="https://raw.githubusercontent.com/h3ad-sec/h3ad-sec.github.io/main/logo-dark.png" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="PROMPTVAULT - AI Prompt Arsenal // H3AD-SEC" />
+  <meta name="twitter:description" content="PROMPTVAULT by H3AD-SEC — A community-driven library of AI prompts for SOC analysts, detection engineers, and threat hunters." />
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/h3ad-sec/h3ad-sec.github.io/main/logo-dark.png" />
+
+  <meta name="theme-color" content="#080c14" />
+  <link rel="icon" href="https://h3ad-sec.github.io/fevicon.png?v=2026" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "PROMPTVAULT",
+    "description": "Community-driven, categorized library of AI prompts purpose-built for SOC analysts, detection engineers, and threat hunters to accelerate triage, detection writing, and investigation work.",
+    "url": "https://h3ad-sec.github.io/PROMPTVAULT/",
+    "applicationCategory": "SecurityApplication",
+    "operatingSystem": "Any",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "H3AD-SEC",
+      "url": "https://h3ad-sec.github.io"
+    }
+  }
+  </script>
   <style>
     :root {
       --bg: #080c14;
@@ -261,6 +298,13 @@
     .tracer-footer { border-top: 1px solid var(--border-dim); padding: 16px 24px; text-align: center; font-family: var(--mono); font-size: 9px; color: var(--muted-dim); letter-spacing: 0.1em; }
     .footer-link { color: var(--muted); text-decoration: none; transition: color 0.15s; }
     .footer-link:hover { color: var(--accent); opacity: 1; }
+    .footer-credit-row { display:flex; align-items:center; justify-content:center; gap:10px; margin-top:10px; flex-wrap:wrap; }
+    .footer-credit-pill { display:inline-flex; flex-wrap:nowrap; align-items:center; gap:6px; padding:4px 12px; border:1px solid var(--border); border-radius:999px; text-decoration:none; font-family:'Exo 2',sans-serif; font-weight:500; font-size:0.65rem; white-space:nowrap; transition:border-color .15s; }
+    .footer-credit-pill:hover { border-color:var(--accent); }
+    .footer-credit-pill .credit-tool { font-weight:700; letter-spacing:2px; }
+    .footer-credit-pill .credit-by { color:var(--muted); }
+    .footer-credit-pill .credit-name { color:var(--accent); font-weight:700; letter-spacing:.5px; }
+    .footer-copyright { color:var(--muted); font-family:'Exo 2',sans-serif; font-size:0.65rem; }
 
     /* ── Scroll sentinel + nav pill ── */
     #scroll-sentinel { position: absolute; top: 0; left: 0; width: 1px; height: 10px; pointer-events: none; }
@@ -505,6 +549,14 @@
     <footer class="tracer-footer">
       H3AD-SEC &middot; PROMPTVAULT &middot; AI PROMPT ARSENAL &middot;
       <a class="footer-link" href="https://github.com/h3ad-sec/PROMPTVAULT" target="_blank" rel="noopener">CONTRIBUTE ON GITHUB ↗</a>
+      <div class="footer-credit-row">
+        <a class="footer-credit-pill" href="https://www.linkedin.com/in/hrushikesh-badgujar/" target="_blank" rel="noopener" title="Connect on LinkedIn">
+          <span class="credit-tool"><span class="xv-pill-accent">PROMPT</span><span class="xv-pill-text">VAULT</span></span>
+          <span class="credit-by">created by</span>
+          <span class="credit-name">H3AD</span>
+        </a>
+        <span class="footer-copyright">© 2026 H3AD-SEC</span>
+      </div>
   </footer>
 
   </div>
