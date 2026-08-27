@@ -1,10 +1,10 @@
 # PROMPTVAULT contribution template
 # Copy this file to data/prompts/{category}/{your-prompt-id}.yaml
-# Categories: triage | detect | intel | hunt | respond | analyze
+# Categories: triage | detect | intel | hunt | respond | analyze | workflow
 
 id: your-prompt-id                         # kebab-case, unique
 title: Your Prompt Title
-category: detect                           # triage | detect | intel | hunt | respond | analyze
+category: detect                           # triage | detect | intel | hunt | respond | analyze | workflow
 use_case: One sentence — what this prompt does and when to use it
 tags: [tag1, tag2, tag3]                   # lowercase, relevant keywords
 mitre: [T1059, T1078]                      # omit if not applicable

@@ -9,7 +9,7 @@ PROMPTVAULT is a community-driven prompt library for SOC analysts and detection 
 cp prompt-template.yaml data/prompts/{category}/{your-prompt-id}.yaml
 ```
 
-Categories: `triage` · `detect` · `intel` · `hunt` · `respond` · `analyze`
+Categories: `triage` · `detect` · `intel` · `hunt` · `respond` · `analyze` · `workflow`
 
 **2. Fill it out**
 - `id`: kebab-case, unique across the repo
@@ -44,3 +44,4 @@ Title format: `add: {prompt title} [{category}]`
 | hunt | Hunting hypothesis generation, lead extraction, pivot suggestions |
 | respond | IR timeline analysis, incident report drafting, containment steps |
 | analyze | Log explanation, anomaly description, event correlation |
+| workflow | AI-assisted dev/process prompts — bulk changes, tooling, engineering workflow |

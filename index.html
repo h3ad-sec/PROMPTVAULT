@@ -72,6 +72,7 @@
       --cat-hunt: #00d4ff;
       --cat-respond: #f97316;
       --cat-analyze: #06b6d4;
+      --cat-workflow: #22c55e;
     }
 
     body.light {
@@ -184,6 +185,7 @@
     .vsb-nav .filter-pill.pill-hunt.active    { color: var(--cat-hunt);    border-color: rgba(0,212,255,0.3);   background: rgba(0,212,255,0.06); }
     .vsb-nav .filter-pill.pill-respond.active { color: var(--cat-respond); border-color: rgba(255,107,53,0.3);  background: rgba(255,107,53,0.06); }
     .vsb-nav .filter-pill.pill-analyze.active { color: var(--cat-analyze); border-color: rgba(6,182,212,0.3);   background: rgba(6,182,212,0.06); }
+    .vsb-nav .filter-pill.pill-workflow.active { color: var(--cat-workflow); border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.06); }
     .fp-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
     .fp-name { flex: 1; }
     .vsb-divider { height: 1px; background: var(--border-dim); margin: 12px 16px; }
@@ -220,6 +222,7 @@
     .query-card[data-cat="hunt"]    { border-left-color: var(--cat-hunt); }
     .query-card[data-cat="respond"] { border-left-color: var(--cat-respond); }
     .query-card[data-cat="analyze"] { border-left-color: var(--cat-analyze); }
+    .query-card[data-cat="workflow"] { border-left-color: var(--cat-workflow); }
     .card-inner { padding: 14px 20px 10px; display: flex; flex-direction: column; gap: 6px; }
     .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
     .card-title { font-family: 'Exo 2', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.35; flex: 1; }
@@ -232,6 +235,7 @@
     .card-footer { padding: 8px 20px 12px; display: flex; justify-content: flex-end; }
     .btn-view { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; background: transparent; color: var(--accent); border: 1px solid rgba(0,212,255,0.25); border-radius: 2px; padding: 4px 13px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
     .btn-view:hover { background: rgba(0,212,255,0.07); border-color: var(--accent); }
+    .btn-view:active { transform: scale(0.96); }
     body.light .btn-view { border-color: rgba(0,77,184,0.3); }
     body.light .btn-view:hover { background: rgba(0,77,184,0.07); }
 
@@ -281,8 +285,10 @@
     .expanded-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-dim); }
     .btn-hide { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; background: transparent; color: var(--muted); border: 1px solid var(--border-dim); border-radius: 2px; padding: 4px 12px; cursor: pointer; transition: all 0.14s; }
     .btn-hide:hover { color: var(--text-dim); border-color: var(--muted-dim); }
-    .btn-copy { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; font-weight: 700; background: var(--accent); color: var(--bg); border: none; border-radius: 2px; padding: 5px 18px; cursor: pointer; transition: opacity 0.15s, box-shadow 0.15s; }
+    .btn-hide:active { transform: scale(0.96); }
+    .btn-copy { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; font-weight: 700; background: var(--accent); color: var(--bg); border: none; border-radius: 2px; padding: 5px 18px; cursor: pointer; transition: opacity 0.15s, box-shadow 0.15s, transform 0.15s; }
     .btn-copy:hover { opacity: 0.88; box-shadow: 0 0 16px rgba(0,212,255,.2); }
+    .btn-copy:active { transform: scale(0.96); }
     body.light .btn-copy { color: #fff; }
 
     /* ── State panels ── */
@@ -337,6 +343,7 @@
       .mobile-filter .filter-pill.pill-hunt.active    { color: var(--cat-hunt);    border-bottom-color: var(--cat-hunt); }
       .mobile-filter .filter-pill.pill-respond.active { color: var(--cat-respond); border-bottom-color: var(--cat-respond); }
       .mobile-filter .filter-pill.pill-analyze.active { color: var(--cat-analyze); border-bottom-color: var(--cat-analyze); }
+      .mobile-filter .filter-pill.pill-workflow.active { color: var(--cat-workflow); border-bottom-color: var(--cat-workflow); }
     }
     @media (max-width: 768px) {
       .tracer-hero { height: auto; padding: 10px 14px; flex-wrap: wrap; gap: 6px; }
@@ -509,6 +516,10 @@
             <span class="fp-dot" style="background:var(--cat-analyze)"></span>
             <span class="fp-name">ANALYZE</span>
           </button>
+          <button class="filter-pill pill-workflow" data-filter="workflow" onclick="setFilter('workflow')">
+            <span class="fp-dot" style="background:var(--cat-workflow)"></span>
+            <span class="fp-name">WORKFLOW</span>
+          </button>
         </nav>
         <div class="vsb-divider"></div>
         <a href="https://github.com/h3ad-sec/PROMPTVAULT" target="_blank" rel="noopener" class="vsb-contribute">+ CONTRIBUTE</a>
@@ -526,6 +537,7 @@
           <button class="filter-pill pill-hunt"    data-filter="hunt"    onclick="setFilter('hunt')">HUNT</button>
           <button class="filter-pill pill-respond" data-filter="respond" onclick="setFilter('respond')">RESPOND</button>
           <button class="filter-pill pill-analyze" data-filter="analyze" onclick="setFilter('analyze')">ANALYZE</button>
+          <button class="filter-pill pill-workflow" data-filter="workflow" onclick="setFilter('workflow')">WORKFLOW</button>
         </div>
 
         <!-- Search bar -->
@@ -605,7 +617,8 @@
       intel:   '#a855f7',
       hunt:    '#00d4ff',
       respond: '#ff6b35',
-      analyze: '#06b6d4'
+      analyze: '#06b6d4',
+      workflow: '#22c55e'
     };
 
     function getCatColor(cat) {

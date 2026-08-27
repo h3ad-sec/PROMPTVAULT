@@ -1,0 +1,37 @@
+id: bulk-change-rollout
+title: Bulk Change Rollout Gate
+category: workflow
+use_case: Force an AI coding assistant to pilot a change on one page/repo and get confirmation before applying it across many pages or repos
+tags: [bulk-edit, multi-repo, rollout, confirmation-gate, ai-coding-assistant]
+author: hrushikesh-badgujar
+contributed: 2026-08-27
+best_with: claude-sonnet-5
+limitations: Only guards against mistakes visible in the pilot target — a change that behaves differently on a later page/repo (different markup, different existing state) can still slip through after confirmation. Doesn't replace testing each target after rollout.
+
+prompt: |
+  When I ask for the same change across multiple pages or repos, do not apply it everywhere at once.
+
+  1. Pick one representative page/repo and apply the change there first.
+  2. Show me exactly what changed (diff or description).
+  3. Stop and ask me to confirm it's correct before touching anything else.
+  4. Only after I explicitly confirm, apply the identical change across the remaining targets: {LIST OF PAGES/REPOS}.
+
+  Change to apply: {DESCRIBE THE CHANGE}
+
+example_output: |
+  Applied to PIVEX/index.html first (pilot target):
+  - Added `<meta name="theme-color" content="#00d4ff">` to <head>
+
+  Diff:
+  + <meta name="theme-color" content="#00d4ff">
+
+  Correct? Reply to confirm before I roll this out to the remaining 12 repos (X-VERDIKT, IOC-VERDIKT, HYPOS, TRACERULES, ...).
+
+variants:
+  - model: gpt-4o
+    prompt: |
+      Rule: for any change I ask you to make across multiple pages or repos, apply it to ONE target first, show me the diff, and wait for my explicit confirmation before applying it to the rest. Do not batch-apply without confirmation.
+
+      Targets: {LIST OF PAGES/REPOS}
+      Change: {DESCRIBE THE CHANGE}
+    notes: GPT-4o is more likely to proceed straight to bulk application if the confirmation step isn't stated as a hard rule up front — phrasing it as "Rule:" instead of a request reduces skip-ahead behavior.

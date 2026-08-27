@@ -5,7 +5,7 @@ const yaml = require('js-yaml');
 const PROMPTS_DIR = path.join(__dirname, '../data/prompts');
 const OUTPUT = path.join(__dirname, '../data/prompts-manifest.json');
 
-const CATEGORIES = ['triage', 'detect', 'intel', 'hunt', 'respond', 'analyze'];
+const CATEGORIES = ['triage', 'detect', 'intel', 'hunt', 'respond', 'analyze', 'workflow'];
 const prompts = [];
 
 for (const category of CATEGORIES) {
