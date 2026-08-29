@@ -95,7 +95,7 @@
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
-    body { background: var(--bg); color: var(--text); font-family: 'Exo 2', sans-serif; font-size: 14px; line-height: 1.6; min-height: 100vh; transition: background 0.25s, color 0.25s; }
+    body { background: var(--bg); color: var(--text); font-family: 'Exo 2', sans-serif; font-size: 14px; line-height: 1.6; min-height: 100vh; transition: background 0.25s, color 0.25s; display: flex; flex-direction: column; min-height: 100dvh; }
     a { color: var(--accent); text-decoration: none; }
     a:hover { opacity: 0.8; }
     a:focus-visible,
@@ -154,7 +154,7 @@
     body.nav-compact .hamburger { display: flex; }
 
     /* ── Page wrap ── */
-    .page-wrap { position: relative; z-index: 1; padding-top: var(--nav-h); min-height: 100vh; display: flex; flex-direction: column; }
+    .page-wrap { position: relative; z-index: 1; padding-top: var(--nav-h); display: flex; flex-direction: column; flex: 1 0 auto; width: 100%; }
 
     /* ── Hero strip ── */
     .tracer-hero { position: fixed; top: var(--nav-h); left: 0; right: 0; z-index: 50; background: var(--panel-alt); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; height: var(--topbar-h); }
@@ -303,7 +303,7 @@
     .btn-retry:hover { background: rgba(0,212,255,0.08); }
 
     /* ── Footer ── */
-    .tracer-footer { border-top: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem 1.5rem; font-family: var(--ui); font-size: var(--fs-xs); color: var(--muted); letter-spacing: 0.1em; }
+    .tracer-footer { border-top: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem 1.5rem; font-family: var(--ui); font-size: var(--fs-xs); color: var(--muted); letter-spacing: 0.1em; flex-shrink: 0; }
     .footer-left { color: var(--muted); }
     .footer-right { color: var(--muted); text-transform: uppercase; opacity: 0.85; }
     .footer-credit-row { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
@@ -317,6 +317,10 @@
       .tracer-footer{flex-direction:column;justify-content:center;text-align:center;gap:0.6rem;}
       .footer-credit-row{justify-content:center;}
     }
+
+    /* Footer color drift fix — align with IOC-VERDIKT ground-truth palette (dark values already correct here) */
+    body.light .footer-left,body.light .footer-right,body.light .footer-credit-pill .credit-by{color:#2E343B;}
+    body.light .footer-credit-pill .credit-name{color:#0A6EA8;}
 
     /* ── Scroll sentinel + nav pill ── */
     #scroll-sentinel { position: absolute; top: 0; left: 0; width: 1px; height: 10px; pointer-events: none; }
@@ -567,19 +571,19 @@
       </div>
     </div>
 
-    <footer class="tracer-footer">
-      <span class="footer-left">H3AD-SEC © 2026 &nbsp;|&nbsp; PROMPTVAULT</span>
-      <span class="footer-right">AI PROMPT ARSENAL</span>
-      <div class="footer-credit-row">
-        <a class="footer-credit-pill" href="https://www.linkedin.com/in/hrushikesh-badgujar/" target="_blank" rel="noopener" title="Connect on LinkedIn">
-          <span class="credit-tool"><span class="xv-pill-accent">PROMPT</span><span class="xv-pill-text">VAULT</span></span>
-          <span class="credit-by">created by</span>
-          <span class="credit-name">H3AD</span>
-        </a>
-      </div>
-  </footer>
+  </div><!-- /page-wrap -->
 
-  </div>
+  <footer class="tracer-footer">
+    <span class="footer-left">H3AD-SEC © 2026 &nbsp;|&nbsp; PROMPTVAULT</span>
+    <span class="footer-right">AI PROMPT ARSENAL</span>
+    <div class="footer-credit-row">
+      <a class="footer-credit-pill" href="https://www.linkedin.com/in/hrushikesh-badgujar/" target="_blank" rel="noopener" title="Connect on LinkedIn">
+        <span class="credit-tool"><span class="xv-pill-accent">PROMPT</span><span class="xv-pill-text">VAULT</span></span>
+        <span class="credit-by">created by</span>
+        <span class="credit-name">H3AD</span>
+      </a>
+    </div>
+  </footer>
 
   <script>
     // ── Theme ──
